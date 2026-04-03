@@ -247,9 +247,18 @@ export default function StoreDetail() {
         </div>
 
         <div className="px-4 py-4 bg-white border-b border-harbor-100 space-y-3">
-          {/* 1段目：Maps + コース追加 */}
+          {/* 1段目：インスタ or Google Maps + コース追加 */}
           <div className="flex gap-3">
-            {restaurant.google_maps_url && (
+            {restaurant.instagram_handle ? (
+              <a
+                href={`https://www.instagram.com/${restaurant.instagram_handle.replace(/^@/, '')}/`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+              >
+                <Instagram className="w-4 h-4" /> Instagram
+              </a>
+            ) : restaurant.google_maps_url ? (
               <a
                 href={restaurant.google_maps_url}
                 target="_blank"
@@ -258,7 +267,7 @@ export default function StoreDetail() {
               >
                 <MapPin className="w-4 h-4" /> Google Maps
               </a>
-            )}
+            ) : null}
             <button
               onClick={toggleCourse}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-colors border ${
@@ -308,15 +317,15 @@ export default function StoreDetail() {
               {favorited ? 'お気に入り済み' : 'お気に入り'}
             </button>
 
-            {restaurant.instagram_handle && (
+            {restaurant.instagram_handle && restaurant.google_maps_url && (
               <a
-                href={`https://www.instagram.com/${restaurant.instagram_handle.replace(/^@/, '')}/`}
+                href={restaurant.google_maps_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center w-14 py-3.5 rounded-xl border border-pink-200 bg-gradient-to-br from-purple-50 to-pink-50 text-pink-600 hover:from-purple-100 hover:to-pink-100 transition-all active:scale-95"
-                aria-label="Instagram"
+                className="flex items-center justify-center w-14 py-3.5 rounded-xl border border-harbor-200 bg-harbor-50 text-harbor-500 hover:bg-harbor-100 transition-all active:scale-95"
+                aria-label="Google Maps"
               >
-                <Instagram className="w-5 h-5" />
+                <MapPin className="w-5 h-5" />
               </a>
             )}
           </div>
@@ -334,16 +343,6 @@ export default function StoreDetail() {
           </div>
         )}
 
-        {restaurant.must_try_menu && (
-          <div className="mx-4 mt-4 bg-white rounded-xl border border-harbor-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-harbor-100">
-              <span className="text-harbor-700 font-medium text-sm">🍽️ おすすめ</span>
-            </div>
-            <div className="px-4 py-3">
-              <p className="text-harbor-700 text-sm leading-relaxed">{restaurant.must_try_menu}</p>
-            </div>
-          </div>
-        )}
 
         {(restaurant.solo_friendly_score || restaurant.foreigner_friendly_score || restaurant.local_experience_score) && (
           <div className="mx-4 mt-4 bg-white rounded-xl border border-harbor-200 overflow-hidden">

@@ -89,10 +89,10 @@ function StoreCard({ store }: { store: Restaurant }) {
             )}
           </div>
 
-          {/* コメント */}
-          {(store.must_try_menu || store.internal_notes) && (
+          {/* キャッチコピー */}
+          {store.internal_notes && (
             <p className="text-harbor-500 text-[11px] leading-relaxed line-clamp-1">
-              {store.must_try_menu ? `🍽 ${store.must_try_menu}` : store.internal_notes}
+              {store.internal_notes}
             </p>
           )}
 
