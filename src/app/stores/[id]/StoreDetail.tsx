@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   MapPin, Phone, Globe, Instagram, Clock,
-  Star, ChevronLeft, Share2, Plus, Check,
+  Star, ChevronLeft, Copy, Check, Plus,
   ExternalLink, Loader2, Heart, LogIn
 } from 'lucide-react';
 import type { Restaurant } from '@/types/restaurant';
@@ -75,16 +75,15 @@ export default function StoreDetail() {
 
   const inCourse = restaurant ? isInCourse(restaurant.id) : false;
 
-  const handleShare = async () => {
+  const handleCopy = async () => {
     const url = window.location.href;
-    if (navigator.share) {
-      await navigator.share({ title: restaurant?.name, url });
-    } else {
-      await navigator.clipboard.writeText(url);
-      setShared(true);
-      setTimeout(() => setShared(false), 2000);
-    }
+    await navigator.clipboard.writeText(url);
+    setShared(true);
+    setTimeout(() => setShared(false), 2000);
   };
+
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const shareText = encodeURIComponent(`${restaurant?.name ?? ''}｜神戸立ち飲みマップ`);
 
   const toggleCourse = () => {
     if (!restaurant) return;
@@ -170,10 +169,33 @@ export default function StoreDetail() {
           <ChevronLeft className="w-4 h-4" />
           戻る
         </button>
-        <button onClick={handleShare} className="flex items-center gap-1.5 text-harbor-600 text-sm px-3 py-1.5 rounded-lg hover:bg-harbor-100 transition-colors">
-          {shared ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
-          {shared ? 'コピー完了' : 'シェア'}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <a
+            href={`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center w-9 h-9 bg-[#06C755] rounded-lg hover:opacity-80 transition-opacity"
+            aria-label="LINEでシェア"
+          >
+            <span className="text-white text-xs font-bold">LINE</span>
+          </a>
+          <a
+            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${shareText}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center w-9 h-9 bg-black rounded-lg hover:opacity-80 transition-opacity"
+            aria-label="Xでシェア"
+          >
+            <span className="text-white text-xs font-bold">𝕏</span>
+          </a>
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1 text-harbor-600 text-sm px-3 py-1.5 rounded-lg hover:bg-harbor-100 transition-colors"
+          >
+            {shared ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+            {shared ? 'コピー完了' : 'URLコピー'}
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto pb-32">

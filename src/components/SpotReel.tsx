@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { Heart, Navigation, ChevronDown, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { Heart, Navigation, ChevronDown, MapPin, ExternalLink } from 'lucide-react';
 import { type SpotData, AREA_LABELS } from '@/data/spots';
 
 interface SpotReelProps {
@@ -122,10 +123,10 @@ function ReelCard({
         </div>
 
         {/* Action buttons */}
-        <div className="flex gap-2.5 mt-4">
+        <div className="flex gap-2 mt-4">
           <button
             onClick={() => onSave(spot.id)}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+            className={`flex items-center gap-1.5 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
               isSaved
                 ? 'bg-kobe-red text-white'
                 : 'text-white/80 hover:text-white'
@@ -139,25 +140,26 @@ function ReelCard({
             {isSaved ? '保存済み' : '行きたい'}
           </button>
 
-          {spot.googleMapsUrl ? (
+          {spot.googleMapsUrl && (
             <a
               href={spot.googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-3 bg-kobe-gold text-harbor-950 rounded-xl text-sm font-bold hover:bg-kobe-amber transition-colors"
+              className="flex items-center gap-1.5 px-3 py-3 bg-kobe-gold text-harbor-950 rounded-xl text-sm font-bold hover:bg-kobe-amber transition-colors"
             >
               <Navigation className="w-4 h-4" />
               マップ
             </a>
-          ) : (
-            <div
-              className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold opacity-30"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}
-            >
-              <Navigation className="w-4 h-4" />
-              マップ
-            </div>
           )}
+
+          <Link
+            href={`/stores/${spot.id}`}
+            className="flex items-center gap-1.5 px-3 py-3 rounded-xl text-sm font-semibold text-white/80 hover:text-white transition-all"
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
+          >
+            <ExternalLink className="w-4 h-4" />
+            詳細
+          </Link>
         </div>
       </div>
 

@@ -24,6 +24,13 @@ const AREA_LABEL: Record<string, string> = {
   surroundings: '周辺',
 };
 
+export async function generateStaticParams() {
+  const { data } = await supabase
+    .from('restaurants')
+    .select('id');
+  return (data ?? []).map(r => ({ id: String(r.id) }));
+}
+
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
