@@ -68,7 +68,7 @@ export default function ChatInterface() {
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) scrollToBottom();
   }, [messages, scrollToBottom]);
 
   const sendMessage = useCallback(async (text: string) => {
