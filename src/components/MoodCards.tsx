@@ -8,6 +8,8 @@ interface MoodCardsProps {
   selected?: string;
   onSelect: (moodId: string, chatPrompt: string) => void;
   layout?: 'grid' | 'scroll';
+  limit?: number;
+  showAll?: boolean;
 }
 
 const MOOD_META: Record<MoodId, { icon: LucideIcon; iconBg: string; iconColor: string }> = {
@@ -21,11 +23,12 @@ const MOOD_META: Record<MoodId, { icon: LucideIcon; iconBg: string; iconColor: s
   second:   { icon: ArrowRight,iconBg: '#fdf5ee', iconColor: '#9a5a30' },
 };
 
-export default function MoodCards({ selected, onSelect, layout = 'grid' }: MoodCardsProps) {
+export default function MoodCards({ selected, onSelect, layout = 'grid', limit, showAll = true }: MoodCardsProps) {
+  const visibleMoods = (limit && !showAll) ? MOODS.slice(0, limit) : MOODS;
   if (layout === 'scroll') {
     return (
       <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4">
-        {MOODS.map(mood => {
+        {visibleMoods.map(mood => {
           const meta = MOOD_META[mood.id];
           const Icon = meta.icon;
           const isSelected = selected === mood.id;
@@ -55,7 +58,7 @@ export default function MoodCards({ selected, onSelect, layout = 'grid' }: MoodC
         今夜の気分から選ぶ
       </p>
       <div className="grid grid-cols-2 gap-3">
-        {MOODS.map(mood => {
+        {visibleMoods.map(mood => {
           const meta = MOOD_META[mood.id];
           const Icon = meta.icon;
           const isSelected = selected === mood.id;

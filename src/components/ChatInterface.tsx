@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import SpotCard from './SpotCard';
 import MoodCards from './MoodCards';
 import { Message, Language } from '@/types';
@@ -58,6 +59,7 @@ export default function ChatInterface() {
   const [language, setLanguage] = useState<Language>('ja');
   const [showQuickStart, setShowQuickStart] = useState(true);
   const [selectedMood, setSelectedMood] = useState<string | undefined>();
+  const [showAllMoods, setShowAllMoods] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -148,38 +150,70 @@ export default function ChatInterface() {
         {messages.length === 0 && (
           <div className="animate-fade-in">
             {/* ウェルカムヒーロー */}
-            <div className="text-center mb-7 pt-3">
+            <div className="text-center mb-6 pt-3">
               {/* ロゴ */}
-              <div className="flex justify-center mb-4">
-                <Image src="/logo.jpg" alt="神戸立ち飲みマップ" width={240} height={136} className="object-contain mix-blend-multiply" />
-              </div>
-              {/* 店舗数バッジ */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-harbor-200 rounded-full text-harbor-500 text-xs mb-5 shadow-card">
-                <span className="w-1.5 h-1.5 bg-kobe-gold rounded-full" />
-                三宮・元町エリア 90店掲載
+              <div className="flex justify-center mb-3">
+                <Image src="/logo.jpg" alt="神戸立ち飲みマップ" width={160} height={90} className="object-contain mix-blend-multiply" />
               </div>
 
               <h2 className="text-harbor-800 text-2xl font-bold mb-2 tracking-tight">
                 今夜、どこ行く？
               </h2>
-              <p className="text-harbor-500 text-sm leading-relaxed max-w-xs mx-auto">
-                三宮・元町の立ち飲みを知り尽くした<br />
-                神戸案内人があなたの一杯を見つけます
+              <p className="text-harbor-800 text-sm font-semibold mb-1">
+                広告なし。地元民だけが知ってる90軒。
+              </p>
+              <p className="text-harbor-400 text-xs">
+                三宮・元町エリアの立ち飲み案内
               </p>
 
-              <p className="text-harbor-400 text-xs mt-3">
-                日本語 · English · 中文 · 한국어 OK
-              </p>
+              {/* メインCTA */}
+              <div className="mt-5 flex flex-col items-center gap-3">
+                <button
+                  onClick={() => sendMessage('今夜のおすすめを教えてください')}
+                  className="w-full max-w-xs px-6 py-4 bg-kobe-gold text-harbor-950 font-bold text-base rounded-2xl shadow-md active:scale-95 hover:bg-kobe-amber transition-all duration-150"
+                >
+                  案内してもらう
+                </button>
+                <Link
+                  href="/stores"
+                  className="text-harbor-500 text-sm hover:text-harbor-700 transition-colors"
+                >
+                  自分で探す →
+                </Link>
+              </div>
             </div>
 
             {showQuickStart && (
-              <MoodCards
-                selected={selectedMood}
-                onSelect={(moodId, chatPrompt) => {
-                  setSelectedMood(moodId);
-                  sendMessage(chatPrompt);
-                }}
-              />
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 h-px bg-harbor-200" />
+                  <p className="text-harbor-400 text-[11px] tracking-widest uppercase">気分で選ぶ</p>
+                  <div className="flex-1 h-px bg-harbor-200" />
+                </div>
+
+                <MoodCards
+                  selected={selectedMood}
+                  onSelect={(moodId, chatPrompt) => {
+                    setSelectedMood(moodId);
+                    sendMessage(chatPrompt);
+                  }}
+                  limit={4}
+                  showAll={showAllMoods}
+                />
+
+                {!showAllMoods && (
+                  <button
+                    onClick={() => setShowAllMoods(true)}
+                    className="w-full mt-3 flex items-center justify-center gap-1 text-harbor-400 text-xs py-2 hover:text-harbor-600 transition-colors"
+                  >
+                    もっと見る <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                )}
+
+                <p className="text-harbor-400 text-[10px] text-center mt-5">
+                  日本語 · English · 中文 · 한국어 OK
+                </p>
+              </div>
             )}
           </div>
         )}
