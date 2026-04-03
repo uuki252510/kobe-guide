@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
        lat, lng, google_maps_url, vibe_tags, rating, user_ratings_total,
        opening_hours_json, english_support, reservation_required,
        foreigner_friendly_score, solo_friendly_score, local_experience_score,
-       tachinomi_type, instagram_handle, is_new_open, open_date,
+       tachinomi_type, instagram_handle, is_new_open, open_date, must_try_menu,
        priority_score, website, phone_number, photo_reference`,
       { count: 'exact' }
     )
