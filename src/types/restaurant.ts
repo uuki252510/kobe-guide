@@ -39,7 +39,7 @@ export interface Restaurant {
   is_new_open: boolean;
   open_date: string | null;
   tachinomi_type: TachinomiType | null;
-  internal_notes: string | null;
+  internal_notes: string | null; // キャッチコピー（Claude生成）
   photo_reference: string | null;
   priority_score: number;
   is_published: boolean;

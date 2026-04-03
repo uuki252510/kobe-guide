@@ -201,7 +201,18 @@ export default function StoreDetail() {
       <div className="flex-1 overflow-y-auto pb-32">
         <div className="bg-white px-5 pt-6 pb-5 border-b border-harbor-100">
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-harbor-100 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0">{emoji}</div>
+            <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-harbor-100">
+            {restaurant.photo_reference ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/photo?ref=${encodeURIComponent(restaurant.photo_reference)}`}
+                alt={restaurant.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-3xl">{emoji}</div>
+            )}
+          </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 {restaurant.is_new_open && (
@@ -213,6 +224,9 @@ export default function StoreDetail() {
                 <span className="text-xs text-harbor-400">{AREA_LABEL[restaurant.area] ?? restaurant.area}</span>
               </div>
               <h1 className="text-harbor-900 font-bold text-xl leading-tight">{restaurant.name}</h1>
+              {restaurant.internal_notes && (
+                <p className="text-harbor-500 text-xs mt-1 leading-relaxed italic">"{restaurant.internal_notes}"</p>
+              )}
               {restaurant.rating && (
                 <div className="flex items-center gap-1 mt-1">
                   <Star className="w-3.5 h-3.5 text-kobe-gold fill-kobe-gold" />
@@ -256,7 +270,7 @@ export default function StoreDetail() {
             </button>
           </div>
 
-          {/* 2段目：ピットイン + お気に入り */}
+          {/* 2段目：ピットイン + お気に入り + Instagram */}
           <div className="flex gap-3">
             <button
               onClick={handleCheckIn}
@@ -293,6 +307,18 @@ export default function StoreDetail() {
               )}
               {favorited ? 'お気に入り済み' : 'お気に入り'}
             </button>
+
+            {restaurant.instagram_handle && (
+              <a
+                href={`https://www.instagram.com/${restaurant.instagram_handle.replace(/^@/, '')}/`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-14 py-3.5 rounded-xl border border-pink-200 bg-gradient-to-br from-purple-50 to-pink-50 text-pink-600 hover:from-purple-100 hover:to-pink-100 transition-all active:scale-95"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+            )}
           </div>
         </div>
 
