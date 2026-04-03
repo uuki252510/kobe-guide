@@ -21,16 +21,18 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
-  const area           = searchParams.get('area');
-  const category       = searchParams.get('category');
-  const budgetMin      = searchParams.get('budget_min');
-  const budgetMax      = searchParams.get('budget_max');
-  const englishSupport = searchParams.get('english_support');
-  const keyword        = searchParams.get('keyword');
-  const vibeTagsParam  = searchParams.get('vibe_tags');
-  const page           = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
-  const limit          = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') ?? '20')));
-  const offset         = (page - 1) * limit;
+  const area            = searchParams.get('area');
+  const tachinomiType   = searchParams.get('tachinomi_type');
+  const budgetMin       = searchParams.get('budget_min');
+  const budgetMax       = searchParams.get('budget_max');
+  const englishSupport  = searchParams.get('english_support');
+  const keyword         = searchParams.get('keyword');
+  const vibeTagsParam   = searchParams.get('vibe_tags');
+  const isNewOpen       = searchParams.get('is_new_open');
+  const soloFriendly    = searchParams.get('solo_friendly');
+  const page            = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
+  const limit           = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') ?? '20')));
+  const offset          = (page - 1) * limit;
 
   let query = supabaseAdmin
     .from('restaurants')
@@ -49,12 +51,14 @@ export async function GET(req: NextRequest) {
     .order('rating', { ascending: false, nullsFirst: false })
     .range(offset, offset + limit - 1);
 
-  if (area)           query = query.eq('area', area);
-  if (category)       query = query.contains('category', [category]);
-  if (budgetMin)      query = query.gte('budget_max', parseInt(budgetMin)); // 上限が最小予算以上
-  if (budgetMax)      query = query.lte('budget_min', parseInt(budgetMax)); // 下限が最大予算以下
-  if (englishSupport === 'true')  query = query.eq('english_support', true);
-  if (keyword)        query = query.or(`name.ilike.%${keyword}%,must_try_menu.ilike.%${keyword}%`);
+  if (area)                   query = query.eq('area', area);
+  if (tachinomiType)          query = query.eq('tachinomi_type', tachinomiType);
+  if (budgetMin)              query = query.gte('budget_max', parseInt(budgetMin));
+  if (budgetMax)              query = query.lte('budget_min', parseInt(budgetMax));
+  if (englishSupport === 'true') query = query.eq('english_support', true);
+  if (isNewOpen === 'true')   query = query.eq('is_new_open', true);
+  if (soloFriendly === 'true') query = query.gte('solo_friendly_score', 3);
+  if (keyword)                query = query.or(`name.ilike.%${keyword}%,must_try_menu.ilike.%${keyword}%`);
   if (vibeTagsParam) {
     const tags = vibeTagsParam.split(',').filter(Boolean);
     if (tags.length > 0) query = query.overlaps('vibe_tags', tags);
