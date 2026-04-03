@@ -224,9 +224,6 @@ export default function StoreDetail() {
                 <span className="text-xs text-harbor-400">{AREA_LABEL[restaurant.area] ?? restaurant.area}</span>
               </div>
               <h1 className="text-harbor-900 font-bold text-xl leading-tight">{restaurant.name}</h1>
-              {restaurant.internal_notes && (
-                <p className="text-harbor-500 text-xs mt-1 leading-relaxed italic">"{restaurant.internal_notes}"</p>
-              )}
               {restaurant.rating && (
                 <div className="flex items-center gap-1 mt-1">
                   <Star className="w-3.5 h-3.5 text-kobe-gold fill-kobe-gold" />

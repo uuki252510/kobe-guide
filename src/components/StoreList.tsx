@@ -89,12 +89,6 @@ function StoreCard({ store }: { store: Restaurant }) {
             )}
           </div>
 
-          {/* キャッチコピー */}
-          {store.internal_notes && (
-            <p className="text-harbor-500 text-[11px] leading-relaxed line-clamp-1">
-              {store.internal_notes}
-            </p>
-          )}
 
           {/* アクションボタン */}
           <div className="flex items-center gap-1.5 mt-2">
