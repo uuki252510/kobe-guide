@@ -199,46 +199,44 @@ export default function StoreDetail() {
       </header>
 
       <div className="flex-1 overflow-y-auto pb-32">
-
-        {/* ── ヒーロー写真 ── */}
-        {restaurant.photo_reference ? (
-          <div className="h-52 overflow-hidden bg-harbor-900">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/api/photo?ref=${encodeURIComponent(restaurant.photo_reference)}`}
-              alt={restaurant.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="h-28 flex items-center justify-center bg-harbor-900">
-            <span className="text-5xl opacity-20 select-none">{emoji}</span>
-          </div>
-        )}
-
-        {/* ── 店舗基本情報 ── */}
-        <div className="bg-white px-5 pt-4 pb-5 border-b border-harbor-100">
-          <div className="flex items-center gap-2 flex-wrap mb-2">
-            {restaurant.is_new_open && (
-              <span className="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">NEW</span>
+        <div className="bg-white px-5 pt-6 pb-5 border-b border-harbor-100">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-harbor-100">
+            {restaurant.photo_reference ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/photo?ref=${encodeURIComponent(restaurant.photo_reference)}`}
+                alt={restaurant.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-3xl">{emoji}</div>
             )}
-            {restaurant.tachinomi_type && (
-              <span className="text-xs text-harbor-500 bg-harbor-100 px-2 py-0.5 rounded-md">{TYPE_LABEL[restaurant.tachinomi_type]}</span>
-            )}
-            <span className="text-xs text-harbor-400">{AREA_LABEL[restaurant.area] ?? restaurant.area}</span>
           </div>
-          <h1 className="text-harbor-900 font-bold text-2xl leading-tight mb-2">{restaurant.name}</h1>
-          {restaurant.rating && (
-            <div className="flex items-center gap-1.5 mb-3">
-              <Star className="w-3.5 h-3.5 text-kobe-gold fill-kobe-gold" />
-              <span className="text-harbor-700 text-sm font-semibold">{restaurant.rating}</span>
-              {restaurant.user_ratings_total && (
-                <span className="text-harbor-400 text-xs">({restaurant.user_ratings_total.toLocaleString()}件)</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                {restaurant.is_new_open && (
+                  <span className="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">NEW</span>
+                )}
+                {restaurant.tachinomi_type && (
+                  <span className="text-xs text-harbor-500 bg-harbor-100 px-2 py-0.5 rounded-full">{TYPE_LABEL[restaurant.tachinomi_type]}</span>
+                )}
+                <span className="text-xs text-harbor-400">{AREA_LABEL[restaurant.area] ?? restaurant.area}</span>
+              </div>
+              <h1 className="text-harbor-900 font-bold text-xl leading-tight">{restaurant.name}</h1>
+              {restaurant.rating && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="w-3.5 h-3.5 text-kobe-gold fill-kobe-gold" />
+                  <span className="text-harbor-700 text-sm font-medium">{restaurant.rating}</span>
+                  {restaurant.user_ratings_total && (
+                    <span className="text-harbor-400 text-xs">({restaurant.user_ratings_total.toLocaleString()}件)</span>
+                  )}
+                </div>
               )}
             </div>
-          )}
+          </div>
           {budget && (
-            <div className="px-4 py-3 bg-harbor-50 rounded-xl border border-harbor-200 flex items-center justify-between">
+            <div className="mt-4 px-4 py-3 bg-harbor-50 rounded-xl border border-harbor-200 flex items-center justify-between">
               <span className="text-harbor-500 text-sm">目安予算</span>
               <span className="text-harbor-800 font-semibold">{budget} / 人</span>
             </div>
