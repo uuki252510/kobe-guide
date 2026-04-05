@@ -26,11 +26,7 @@ export default function BottomNav({ courseCount = 0 }: Props) {
   ];
 
   return (
-    /* Apple glass nav — rgba(0,0,0,0.8) + saturate(180%) blur(20px) */
-    <nav
-      className="ap-glass font-ap-body fixed bottom-0 left-0 right-0 z-50"
-      style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
-    >
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-harbor-950/95 backdrop-blur-sm border-t border-harbor-800">
       <div className="max-w-2xl mx-auto flex">
         {tabs.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || (href !== '/' && pathname.startsWith(href));
@@ -39,36 +35,21 @@ export default function BottomNav({ courseCount = 0 }: Props) {
             <Link
               key={href}
               href={href}
-              className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors relative"
-              style={{ color: active ? '#fff' : 'rgba(255,255,255,0.45)' }}
+              className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors relative ${
+                active
+                  ? 'text-kobe-gold'
+                  : 'text-harbor-500 hover:text-harbor-300'
+              }`}
             >
               <div className="relative">
                 <Icon className="w-5 h-5" />
                 {isMap && courseCount > 0 && (
-                  <span
-                    className="absolute -top-1.5 -right-2 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full leading-none"
-                    style={{ background: '#0071e3' }}
-                  >
+                  <span className="absolute -top-1.5 -right-2 bg-kobe-red text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full leading-none">
                     {courseCount > 9 ? '9+' : courseCount}
                   </span>
                 )}
               </div>
-              <span
-                style={{
-                  fontSize: 10, letterSpacing: '-0.08px',
-                  lineHeight: 1,
-                  color: active ? '#fff' : 'rgba(255,255,255,0.45)',
-                }}
-              >
-                {label}
-              </span>
-              {/* Active indicator dot — Apple Blue */}
-              {active && (
-                <span
-                  className="absolute bottom-1.5 rounded-full"
-                  style={{ width: 4, height: 4, background: '#0071e3' }}
-                />
-              )}
+              <span className="text-[10px] leading-none">{label}</span>
             </Link>
           );
         })}
