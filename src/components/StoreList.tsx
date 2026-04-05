@@ -1,41 +1,64 @@
 'use client';
 
 import Link from 'next/link';
-import { Navigation, Instagram, MapPin } from 'lucide-react';
+import { Navigation, Instagram, Star, MapPin } from 'lucide-react';
 import type { Restaurant } from '@/types/restaurant';
 
+// ── type labels & colors ─────────────────────────────────────
 const TYPE_LABEL: Record<string, string> = {
   tachinomi: '立ち飲み', kakuuchi: '角打ち', yakitori: '焼鳥',
   seafood: '海鮮', wine: 'ワイン', italian: 'イタリアン',
   hormones: 'ホルモン', bar: 'バー',
 };
 
-const TYPE_COLOR: Record<string, string> = {
-  kakuuchi:  'bg-purple-50 text-purple-700 border-purple-200',
-  wine:      'bg-pink-50 text-pink-700 border-pink-200',
-  seafood:   'bg-blue-50 text-blue-700 border-blue-200',
-  yakitori:  'bg-orange-50 text-orange-700 border-orange-200',
-  bar:       'bg-slate-50 text-slate-700 border-slate-200',
-  italian:   'bg-green-50 text-green-700 border-green-200',
-  hormones:  'bg-red-50 text-red-700 border-red-200',
-  tachinomi: 'bg-amber-50 text-amber-700 border-amber-200',
+// Accent tints for type badges (subtle, dark-bg friendly)
+const TYPE_TINT: Record<string, { bg: string; text: string; border: string }> = {
+  kakuuchi:  { bg: 'rgba(139,92,246,0.12)', text: '#a78bfa', border: 'rgba(139,92,246,0.25)' },
+  wine:      { bg: 'rgba(236,72,153,0.10)', text: '#f472b6', border: 'rgba(236,72,153,0.25)' },
+  seafood:   { bg: 'rgba(59,130,246,0.10)', text: '#60a5fa', border: 'rgba(59,130,246,0.25)' },
+  yakitori:  { bg: 'rgba(245,158,11,0.10)', text: '#fbbf24', border: 'rgba(245,158,11,0.25)' },
+  bar:       { bg: 'rgba(148,163,184,0.08)', text: '#94a3b8', border: 'rgba(148,163,184,0.20)' },
+  italian:   { bg: 'rgba(34,197,94,0.10)',  text: '#4ade80', border: 'rgba(34,197,94,0.25)' },
+  hormones:  { bg: 'rgba(239,68,68,0.10)',  text: '#f87171', border: 'rgba(239,68,68,0.25)' },
+  tachinomi: { bg: 'rgba(251,191,36,0.10)', text: '#fcd34d', border: 'rgba(251,191,36,0.25)' },
+};
+
+const TYPE_EMOJI: Record<string, string> = {
+  tachinomi: '🍺', kakuuchi: '🍶', yakitori: '🍢',
+  seafood: '🐟', wine: '🍷', italian: '🍕',
+  hormones: '🥩', bar: '🥂',
 };
 
 const AREA_LABEL: Record<string, string> = {
   sannomiya: '三宮', motomachi: '元町', surroundings: '周辺',
 };
 
+// ── StoreCard ────────────────────────────────────────────────
 function StoreCard({ store }: { store: Restaurant }) {
-  const typeLabel = store.tachinomi_type ? (TYPE_LABEL[store.tachinomi_type] ?? '立ち飲み') : '立ち飲み';
-  const typeColor = store.tachinomi_type ? (TYPE_COLOR[store.tachinomi_type] ?? TYPE_COLOR.tachinomi) : TYPE_COLOR.tachinomi;
-  const photoUrl = store.photo_reference ? `/api/photo?ref=${encodeURIComponent(store.photo_reference)}` : null;
-  const budgetStr = store.budget_max ? `〜¥${store.budget_max.toLocaleString()}` : '';
+  const type    = store.tachinomi_type;
+  const label   = type ? (TYPE_LABEL[type] ?? '立ち飲み') : '立ち飲み';
+  const tint    = type ? (TYPE_TINT[type]  ?? TYPE_TINT.tachinomi) : TYPE_TINT.tachinomi;
+  const emoji   = type ? (TYPE_EMOJI[type] ?? '🏮') : '🏮';
+  const photoUrl = store.photo_reference
+    ? `/api/photo?ref=${encodeURIComponent(store.photo_reference)}`
+    : null;
+
+  const areaStr   = AREA_LABEL[store.area] ?? store.area;
+  const budgetStr = store.budget_max ? `〜¥${store.budget_max.toLocaleString()}` : null;
 
   return (
-    <div className="bg-white border border-harbor-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div className="flex">
-        {/* 写真 */}
-        <div className="w-24 h-24 flex-shrink-0 bg-harbor-100 relative">
+    <div
+      className="ln-card group overflow-hidden transition-all duration-150"
+      style={{ borderRadius: 10 }}
+    >
+      {/* ── メイン行（タップで詳細） ── */}
+      <Link href={`/stores/${store.id}`} className="flex gap-3 px-4 py-3.5">
+
+        {/* サムネイル */}
+        <div
+          className="relative flex-shrink-0 rounded-lg overflow-hidden"
+          style={{ width: 68, height: 68, background: '#191a1b' }}
+        >
           {photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -45,104 +68,133 @@ function StoreCard({ store }: { store: Restaurant }) {
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-harbor-900">
-              <span className="text-3xl opacity-20 select-none">
-                {store.tachinomi_type === 'wine' ? '🍷'
-                  : store.tachinomi_type === 'seafood' ? '🐟'
-                  : store.tachinomi_type === 'yakitori' ? '🍢'
-                  : store.tachinomi_type === 'kakuuchi' ? '🍶'
-                  : store.tachinomi_type === 'bar' ? '🥂'
-                  : '🏮'}
-              </span>
+            <div
+              className="w-full h-full flex items-center justify-center"
+              style={{ fontSize: 26, opacity: 0.3 }}
+            >
+              {emoji}
             </div>
           )}
           {store.is_new_open && (
-            <span className="absolute top-1.5 left-1.5 text-[9px] bg-green-500 text-white font-bold px-1.5 py-0.5 rounded-full">
+            <span
+              className="absolute top-1 left-1 text-white font-medium"
+              style={{
+                fontSize: 9, background: '#10b981',
+                borderRadius: '50%', padding: '2px 5px',
+                lineHeight: 1.4, letterSpacing: '0.02em',
+              }}
+            >
               NEW
             </span>
           )}
         </div>
 
-        {/* 情報 */}
-        <div className="flex-1 min-w-0 px-3 py-2.5">
+        {/* 店舗情報 */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+
           {/* 店名 + タイプバッジ */}
-          <div className="flex items-start gap-2 mb-1">
-            <p className="text-harbor-900 font-bold text-sm leading-tight flex-1 min-w-0 truncate">
+          <div className="flex items-start gap-2">
+            <p
+              className="flex-1 min-w-0 truncate"
+              style={{
+                fontSize: 15, fontWeight: 510, color: '#f7f8f8',
+                letterSpacing: '-0.165px', lineHeight: 1.4,
+              }}
+            >
               {store.name}
             </p>
-            <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${typeColor}`}>
-              {typeLabel}
+            <span
+              className="flex-shrink-0"
+              style={{
+                fontSize: 11, fontWeight: 510,
+                padding: '2px 8px', borderRadius: 9999,
+                background: tint.bg, color: tint.text,
+                border: `1px solid ${tint.border}`,
+                lineHeight: 1.5, letterSpacing: '-0.13px',
+              }}
+            >
+              {label}
             </span>
           </div>
 
-          {/* エリア + 予算 */}
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="flex items-center gap-0.5 text-harbor-400 text-xs">
-              <MapPin className="w-3 h-3" />
-              {AREA_LABEL[store.area] ?? store.area}
+          {/* メタ情報 */}
+          <div
+            className="flex items-center gap-2.5 flex-wrap"
+            style={{ fontSize: 12, color: '#8a8f98', lineHeight: 1 }}
+          >
+            <span className="flex items-center gap-1">
+              <MapPin style={{ width: 11, height: 11 }} />
+              {areaStr}
             </span>
             {budgetStr && (
-              <span className="text-kobe-gold font-bold text-xs">{budgetStr}</span>
+              <span style={{ color: '#7170ff', fontWeight: 510 }}>{budgetStr}</span>
             )}
             {store.rating && (
-              <span className="text-harbor-400 text-xs">★ {store.rating.toFixed(1)}</span>
-            )}
-          </div>
-
-
-          {/* アクションボタン */}
-          <div className="flex items-center gap-1.5 mt-2">
-            <Link
-              href={`/stores/${store.id}`}
-              className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 bg-harbor-100 text-harbor-700 rounded-full hover:bg-harbor-200 transition-colors"
-            >
-              詳細
-            </Link>
-            {store.instagram_handle && (
-              <a
-                href={`https://www.instagram.com/${store.instagram_handle.replace(/^@/, '')}/`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 bg-pink-50 text-pink-600 border border-pink-200 rounded-full hover:bg-pink-100 transition-colors"
-              >
-                <Instagram className="w-3 h-3" />
-                Instagram
-              </a>
-            )}
-            {store.google_maps_url && (
-              <a
-                href={store.google_maps_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 bg-kobe-gold/10 text-kobe-gold border border-kobe-gold/30 rounded-full hover:bg-kobe-gold/20 transition-colors"
-              >
-                <Navigation className="w-3 h-3" />
-                マップ
-              </a>
+              <span className="flex items-center gap-0.5">
+                <Star style={{ width: 11, height: 11, fill: '#8a8f98' }} />
+                {store.rating.toFixed(1)}
+              </span>
             )}
           </div>
         </div>
-      </div>
+
+        {/* 矢印 */}
+        <div className="flex items-center flex-shrink-0" style={{ color: '#3e3e44' }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      </Link>
+
+      {/* ── アクションボタン（外部リンク） ── */}
+      {(store.instagram_handle || store.google_maps_url) && (
+        <div
+          className="flex items-center gap-2 px-4 pb-3"
+          style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}
+        >
+          {store.instagram_handle && (
+            <a
+              href={`https://www.instagram.com/${store.instagram_handle.replace(/^@/, '')}/`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ln-btn-ghost flex items-center gap-1.5"
+              style={{ padding: '5px 11px', fontSize: 12 }}
+            >
+              <Instagram style={{ width: 12, height: 12 }} />
+              Instagram
+            </a>
+          )}
+          {store.google_maps_url && (
+            <a
+              href={store.google_maps_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ln-btn-ghost flex items-center gap-1.5"
+              style={{ padding: '5px 11px', fontSize: 12 }}
+            >
+              <Navigation style={{ width: 12, height: 12 }} />
+              マップ
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-interface StoreListProps {
-  stores: Restaurant[];
-}
-
-export default function StoreList({ stores }: StoreListProps) {
+// ── StoreList ────────────────────────────────────────────────
+export default function StoreList({ stores }: { stores: Restaurant[] }) {
   if (stores.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <span className="text-5xl opacity-30">🏮</span>
-        <p className="text-harbor-400 text-sm">条件に合う店が見つかりません</p>
+      <div className="flex flex-col items-center justify-center py-24 gap-3">
+        <span style={{ fontSize: 36, opacity: 0.2 }}>🏮</span>
+        <p style={{ fontSize: 14, color: '#62666d' }}>条件に合う店が見つかりません</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2.5 px-4 py-3">
+    <div className="flex flex-col gap-1.5 px-3 py-3">
       {stores.map(store => (
         <StoreCard key={store.id} store={store} />
       ))}

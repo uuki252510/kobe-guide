@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Inter Variable — full weight range + optical sizing (Linear design system) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -28,6 +29,93 @@ body {
   color: var(--harbor-800);
   font-family: 'Inter', 'Noto Sans JP', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ── Linear Design System (DESIGN.md) ────────────────────────
+   Inter Variable with OpenType cv01 + ss03 applied globally.
+   cv01 = single-story 'a', ss03 = cleaner geometric alternates.
+   This transforms Inter into Linear's distinctive typeface.    */
+:root {
+  --ln-bg:      #0f1011;
+  --ln-bg-deep: #08090a;
+  --ln-s1:      #191a1b;
+  --ln-s2:      #28282c;
+  --ln-t1:      #f7f8f8;
+  --ln-t2:      #d0d6e0;
+  --ln-t3:      #8a8f98;
+  --ln-t4:      #62666d;
+  --ln-accent:  #5e6ad2;
+  --ln-violet:  #7170ff;
+  --ln-violet-h:#828fff;
+  --ln-border:  rgba(255,255,255,0.08);
+  --ln-border-s:rgba(255,255,255,0.05);
+}
+
+/* Apply OpenType features globally — non-negotiable for Linear look */
+* {
+  font-feature-settings: "cv01", "ss03";
+}
+
+/* Linear page context — dark background */
+.ln-page {
+  background: var(--ln-bg);
+  color: var(--ln-t1);
+}
+
+/* Linear card */
+.ln-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+}
+.ln-card:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+/* Linear pill chip */
+.ln-pill {
+  background: transparent;
+  border: 1px solid #23252a;
+  border-radius: 9999px;
+  color: var(--ln-t2);
+  font-size: 12px;
+  font-weight: 510;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.ln-pill.active {
+  background: rgba(94,106,210,0.15);
+  border-color: #5e6ad2;
+  color: #828fff;
+}
+
+/* Linear ghost button */
+.ln-btn-ghost {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  color: var(--ln-t2);
+  font-size: 13px;
+  font-weight: 510;
+  padding: 5px 12px;
+  transition: background 0.15s;
+}
+.ln-btn-ghost:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* Linear primary CTA button */
+.ln-btn-primary {
+  background: var(--ln-accent);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 510;
+  padding: 7px 16px;
+  transition: background 0.15s;
+}
+.ln-btn-primary:hover {
+  background: var(--ln-violet-h);
 }
 
 /* Scrollbar */

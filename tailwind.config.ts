@@ -25,19 +25,59 @@ const config: Config = {
           950: "#0C0A09",  // near black
         },
         // Kobe brand accent
-        "kobe-gold":  "#C9A44C",  // primary CTA, gold text
-        "kobe-amber": "#E8C46A",  // hover / lighter accent
-        "kobe-red":   "#C0392B",  // alerts, badges
-        "kobe-cream": "#FFF8EC",  // warm off-white tint
+        "kobe-gold":  "#C9A44C",
+        "kobe-amber": "#E8C46A",
+        "kobe-red":   "#C0392B",
+        "kobe-cream": "#FFF8EC",
+
+        // ── Linear Design System (DESIGN.md) ─────────────────
+        ln: {
+          // Backgrounds (darkest → lightest surface)
+          "bg":      "#0f1011",   // panel / page background
+          "bg-deep": "#08090a",   // deepest marketing black
+          "s1":      "#191a1b",   // surface level 1 (cards)
+          "s2":      "#28282c",   // surface level 2 (hover / elevated)
+          // Text
+          "t1":      "#f7f8f8",   // primary text
+          "t2":      "#d0d6e0",   // secondary text
+          "t3":      "#8a8f98",   // muted / placeholder
+          "t4":      "#62666d",   // subtle / timestamp
+          // Accent (brand indigo-violet)
+          "accent":  "#5e6ad2",   // CTA background
+          "violet":  "#7170ff",   // interactive / active
+          "violet-h":"#828fff",   // hover
+          // Status
+          "green":   "#27a644",
+          "emerald": "#10b981",
+          // Borders (solid)
+          "b1":      "#23252a",
+          "b2":      "#34343a",
+          "b3":      "#3e3e44",
+        },
       },
       fontFamily: {
-        sans: ["Inter", "Noto Sans JP", "sans-serif"],
+        sans: [
+          "Inter Variable", "Inter",
+          "SF Pro Display", "-apple-system", "system-ui",
+          "Segoe UI", "Helvetica Neue", "sans-serif",
+        ],
       },
       boxShadow: {
-        "card":   "0 1px 4px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.04)",
-        "card-md":"0 2px 12px rgba(0,0,0,0.09), 0 0 1px rgba(0,0,0,0.04)",
-        "nav-top":"0 -1px 8px rgba(0,0,0,0.06)",
+        "card":     "0 1px 4px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.04)",
+        "card-md":  "0 2px 12px rgba(0,0,0,0.09), 0 0 1px rgba(0,0,0,0.04)",
+        "nav-top":  "0 -1px 8px rgba(0,0,0,0.06)",
         "nav-bottom":"0 1px 8px rgba(0,0,0,0.06)",
+        // Linear shadow tokens
+        "ln-card":  "0 0 0 1px rgba(0,0,0,0.2)",
+        "ln-float": "0 2px 4px rgba(0,0,0,0.4)",
+        "ln-focus":  "0 4px 12px rgba(0,0,0,0.1)",
+      },
+      borderRadius: {
+        "ln-sm":   "4px",
+        "ln":      "6px",
+        "ln-card": "8px",
+        "ln-panel":"12px",
+        "ln-pill": "9999px",
       },
       animation: {
         "fade-in":    "fadeIn 0.3s ease-in-out",
