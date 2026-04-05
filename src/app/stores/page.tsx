@@ -1,15 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import StoreList from '@/components/StoreList';
 import BottomNav from '@/components/BottomNav';
 import { useCourse } from '@/hooks/useCourse';
 import type { Restaurant } from '@/types/restaurant';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { Search, X, SlidersHorizontal } from 'lucide-react';
 
-// ── エリアフィルター ────────────────────────────────────────────
 const AREAS = [
   { value: '',              label: 'すべて' },
   { value: 'sannomiya',    label: '三宮' },
@@ -17,7 +15,6 @@ const AREAS = [
   { value: 'surroundings', label: '周辺' },
 ];
 
-// ── カテゴリ・絞り込みフィルター ────────────────────────────────
 type FilterId =
   | 'all' | 'solo' | 'budget' | 'local' | 'retro'
   | 'kakuuchi' | 'tachinomi' | 'wine' | 'seafood'
@@ -33,19 +30,19 @@ interface FilterDef {
 
 const FILTERS: FilterDef[] = [
   { id: 'all',      label: 'すべて',       emoji: '🏮', params: {} },
-  { id: 'solo',     label: '一人OK',       emoji: '🧍', params: { vibe_tags: 'solo-friendly' } },
-  { id: 'budget',   label: '1000円以内',   emoji: '💴', params: { budget_max: '1000' } },
-  { id: 'local',    label: '地元の名店',   emoji: '🍶', params: { vibe_tags: 'local' } },
-  { id: 'retro',    label: 'レトロ',       emoji: '🕯', params: { vibe_tags: 'retro' } },
-  { id: 'kakuuchi', label: '角打ち',       emoji: '🏪', params: { tachinomi_type: 'kakuuchi' } },
+  { id: 'kakuuchi', label: '角打ち',       emoji: '🍶', params: { tachinomi_type: 'kakuuchi' } },
   { id: 'wine',     label: 'ワイン',       emoji: '🍷', params: { tachinomi_type: 'wine' } },
   { id: 'seafood',  label: '海鮮',         emoji: '🐟', params: { tachinomi_type: 'seafood' } },
   { id: 'yakitori', label: '焼鳥',         emoji: '🍢', params: { tachinomi_type: 'yakitori' } },
   { id: 'bar',      label: 'バー',         emoji: '🥂', params: { tachinomi_type: 'bar' } },
   { id: 'hormones', label: 'ホルモン',     emoji: '🥩', params: { tachinomi_type: 'hormones' } },
   { id: 'italian',  label: 'イタリアン',   emoji: '🍕', params: { tachinomi_type: 'italian' } },
+  { id: 'tachinomi', label: '立ち飲み',   emoji: '🍺', params: { tachinomi_type: 'tachinomi' } },
+  { id: 'solo',     label: '一人OK',       emoji: '🧍', params: { vibe_tags: 'solo-friendly' } },
+  { id: 'budget',   label: '1000円以内',   emoji: '💴', params: { budget_max: '1000' } },
+  { id: 'local',    label: '地元の名店',   emoji: '🏅', params: { vibe_tags: 'local' } },
+  { id: 'retro',    label: 'レトロ',       emoji: '🕯', params: { vibe_tags: 'retro' } },
   { id: 'new',      label: '新規オープン', emoji: '✨', params: { is_new_open: 'true' } },
-  { id: 'late',     label: '深夜OK',       emoji: '🌙', params: { vibe_tags: 'late-night' } },
 ];
 
 const BUDGET_OPTIONS = [
@@ -59,18 +56,27 @@ export default function StoresPage() {
   const [area, setArea] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
   const [budgetMax, setBudgetMax] = useState('');
-  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [showBudget, setShowBudget] = useState(false);
+  const [keyword, setKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [stores, setStores] = useState<Restaurant[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { count: courseCount } = useCourse();
-  const filterScrollRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword), 400);
+    return () => clearTimeout(t);
+  }, [keyword]);
 
   const fetchStores = useCallback(async () => {
     setIsLoading(true);
     const params = new URLSearchParams({ limit: '90' });
     if (area) params.set('area', area);
     if (budgetMax) params.set('budget_max', budgetMax);
+    if (debouncedKeyword) params.set('keyword', debouncedKeyword);
 
     const filter = FILTERS.find(f => f.id === activeFilter);
     if (filter) {
@@ -88,121 +94,145 @@ export default function StoresPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [area, activeFilter, budgetMax]);
+  }, [area, activeFilter, budgetMax, debouncedKeyword]);
 
   useEffect(() => { fetchStores(); }, [fetchStores]);
 
-  const hasActiveFilters = area !== '' || activeFilter !== 'all' || budgetMax !== '';
+  const hasActiveFilters = area !== '' || activeFilter !== 'all' || budgetMax !== '' || debouncedKeyword !== '';
 
   const resetAll = () => {
     setArea('');
     setActiveFilter('all');
     setBudgetMax('');
-    setShowFilterPanel(false);
+    setKeyword('');
+    setDebouncedKeyword('');
+    setShowBudget(false);
   };
 
   return (
-    <main className="h-dvh flex flex-col overflow-hidden bg-harbor-50">
+    <main className="h-dvh flex flex-col overflow-hidden" style={{ background: '#111109' }}>
 
-      {/* ── ヘッダー ── */}
-      <header className="flex-shrink-0 h-12 flex items-center justify-between px-4 bg-white/95 backdrop-blur-sm border-b border-harbor-200 z-30">
-        <div className="flex items-center gap-2.5">
-          <Image src="/logo.jpg" alt="神戸立ち飲みマップ" width={64} height={36} className="object-contain mix-blend-multiply" />
-          <span className="text-harbor-800 font-bold text-sm">神戸立ち飲みマップ</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {courseCount > 0 && (
-            <Link href="/map" className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-kobe-red/10 border border-kobe-red/50 text-kobe-red rounded-full font-bold">
-              🍺 {courseCount}店
+      {/* ── ヘッダー（ダーク） ── */}
+      <header className="flex-shrink-0 px-4 pt-4 pb-3" style={{ background: '#111109' }}>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-white/40 text-[10px] font-medium tracking-widest uppercase">Kobe Tachinomi</p>
+            <h1 className="text-white font-bold text-lg leading-tight tracking-tight">神戸立ち飲みマップ</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {courseCount > 0 && (
+              <Link href="/map" className="flex items-center gap-1 text-xs px-3 py-1.5 bg-kobe-gold/20 border border-kobe-gold/40 text-kobe-amber rounded-full font-bold">
+                🍺 {courseCount}店
+              </Link>
+            )}
+            <Link href="/" className="text-xs px-3 py-1.5 bg-white/10 border border-white/20 text-white/70 rounded-full hover:bg-white/15 transition-colors">
+              案内を聞く
             </Link>
+          </div>
+        </div>
+
+        {/* 検索バー */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+          <input
+            ref={searchRef}
+            type="text"
+            value={keyword}
+            onChange={e => setKeyword(e.target.value)}
+            placeholder="店名・エリアで検索..."
+            className="w-full pl-9 pr-9 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder-white/30 outline-none focus:border-white/40 focus:bg-white/15 transition-all"
+          />
+          {keyword && (
+            <button
+              onClick={() => { setKeyword(''); setDebouncedKeyword(''); searchRef.current?.focus(); }}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           )}
-          <Link href="/" className="text-xs px-3 py-1.5 bg-harbor-100 border border-harbor-200 text-harbor-600 rounded-full hover:bg-harbor-200 transition-colors">
-            案内を聞く
-          </Link>
         </div>
       </header>
 
-      {/* ── エリアフィルター ── */}
-      <div className="flex-shrink-0 bg-white border-b border-harbor-200 px-3 pt-2 pb-2">
-        <div className="flex gap-1.5">
+      {/* ── フィルターバー（スティッキー） ── */}
+      <div className="flex-shrink-0 z-20" style={{ background: '#111109' }}>
+
+        {/* エリアタブ */}
+        <div className="flex items-center gap-1.5 px-4 pb-2">
           {AREAS.map(a => (
             <button
               key={a.value}
               onClick={() => setArea(a.value)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
+              className={`px-3.5 py-1 rounded-full text-xs font-semibold border transition-all duration-150 ${
                 area === a.value
-                  ? 'bg-harbor-900 text-white border-harbor-800'
-                  : 'bg-harbor-50 text-harbor-600 border-harbor-200 hover:border-harbor-400'
+                  ? 'bg-white text-harbor-900 border-white'
+                  : 'bg-transparent text-white/50 border-white/20 hover:border-white/40 hover:text-white/70'
               }`}
             >
               {a.label}
             </button>
           ))}
+
+          {/* 予算ボタン（右端） */}
+          <div className="ml-auto">
+            <button
+              onClick={() => setShowBudget(v => !v)}
+              className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border transition-all duration-150 ${
+                showBudget || budgetMax
+                  ? 'bg-kobe-gold text-harbor-950 border-kobe-gold'
+                  : 'bg-transparent text-white/50 border-white/20 hover:border-white/40 hover:text-white/70'
+              }`}
+            >
+              <SlidersHorizontal className="w-3 h-3" />
+              予算
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* ── カテゴリ・絞り込みバー ── */}
-      <div className="flex-shrink-0 bg-white/90 border-b border-harbor-200">
-        <div className="flex items-center">
-          <button
-            onClick={() => setShowFilterPanel(v => !v)}
-            className={`flex-shrink-0 flex items-center gap-1.5 ml-3 mr-2 px-2.5 py-2 rounded-full text-xs font-semibold border transition-all duration-200 ${
-              showFilterPanel || budgetMax
-                ? 'bg-kobe-gold text-harbor-950 border-kobe-gold'
-                : 'bg-white text-harbor-600 border-harbor-200'
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            予算
-          </button>
-
-          <div ref={filterScrollRef} className="flex gap-1.5 overflow-x-auto scrollbar-hide py-2 pr-3">
-            {FILTERS.map(f => (
+        {/* 予算パネル */}
+        {showBudget && (
+          <div className="px-4 pb-2.5 flex items-center gap-2">
+            <span className="text-white/40 text-[10px] font-medium tracking-wide mr-1">上限</span>
+            {BUDGET_OPTIONS.map(b => (
               <button
-                key={f.id}
-                onClick={() => setActiveFilter(f.id === activeFilter ? 'all' : f.id)}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
-                  activeFilter === f.id
-                    ? 'bg-harbor-900 text-white border-harbor-800 shadow-sm'
-                    : 'bg-white text-harbor-600 border-harbor-200 hover:border-harbor-300'
+                key={b.max}
+                onClick={() => setBudgetMax(b.max)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  budgetMax === b.max
+                    ? 'bg-kobe-gold text-harbor-950 border-kobe-gold'
+                    : 'bg-transparent text-white/50 border-white/20 hover:border-white/40'
                 }`}
               >
-                <span>{f.emoji}</span>
-                {f.label}
+                {b.label}
               </button>
             ))}
           </div>
-        </div>
-
-        {showFilterPanel && (
-          <div className="px-4 pb-3 border-t border-harbor-100 pt-2.5">
-            <p className="text-harbor-500 text-[11px] font-medium mb-2">予算上限</p>
-            <div className="flex gap-2">
-              {BUDGET_OPTIONS.map(b => (
-                <button
-                  key={b.max}
-                  onClick={() => setBudgetMax(b.max)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    budgetMax === b.max
-                      ? 'bg-kobe-gold text-harbor-950 border-kobe-gold'
-                      : 'bg-white text-harbor-600 border-harbor-200 hover:border-harbor-300'
-                  }`}
-                >
-                  {b.label}
-                </button>
-              ))}
-            </div>
-          </div>
         )}
+
+        {/* カテゴリフィルター */}
+        <div ref={filterRef} className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 pb-3">
+          {FILTERS.map(f => (
+            <button
+              key={f.id}
+              onClick={() => setActiveFilter(f.id === activeFilter ? 'all' : f.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all duration-150 ${
+                activeFilter === f.id
+                  ? 'bg-white text-harbor-900 border-white'
+                  : 'bg-white/8 text-white/55 border-white/15 hover:border-white/35 hover:text-white/75'
+              }`}
+            >
+              <span className="text-[12px] leading-none">{f.emoji}</span>
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* ── 件数バー ── */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-1.5 bg-harbor-50 border-b border-harbor-100">
+      {/* ── 件数 + リセット ── */}
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 bg-harbor-50 border-b border-harbor-100">
         <p className="text-harbor-500 text-xs">
-          {isLoading
-            ? '検索中...'
-            : <><span className="text-harbor-800 font-bold">{total}</span>店舗</>
-          }
+          {isLoading ? '検索中...' : (
+            <><span className="text-harbor-800 font-semibold">{total}</span> 店舗</>
+          )}
         </p>
         {hasActiveFilters && (
           <button onClick={resetAll} className="flex items-center gap-1 text-xs text-harbor-400 hover:text-kobe-red transition-colors">
@@ -212,13 +242,13 @@ export default function StoresPage() {
         )}
       </div>
 
-      {/* ── リスト ── */}
-      <div className="flex-1 overflow-y-auto">
+      {/* ── リスト（明るい背景） ── */}
+      <div className="flex-1 overflow-y-auto bg-harbor-50">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="w-8 h-8 rounded-full border-2 border-kobe-gold/30 border-t-kobe-gold animate-spin mx-auto mb-3" />
-              <p className="text-harbor-400 text-sm">読み込み中...</p>
+          <div className="flex items-center justify-center py-24">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-7 h-7 rounded-full border-2 border-harbor-200 border-t-harbor-600 animate-spin" />
+              <p className="text-harbor-400 text-xs">読み込み中...</p>
             </div>
           </div>
         ) : (

@@ -76,6 +76,9 @@ textarea {
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* bg-white/8 など Tailwind が生成しないカスタム透明度 */
+.bg-white\/8 { background-color: rgba(255,255,255,0.08); }
+
 /* SpotReel snap scroll */
 .reel-container {
   overflow-y: scroll;
