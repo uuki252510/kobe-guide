@@ -29,15 +29,65 @@ const config: Config = {
         "kobe-amber": "#E8C46A",  // hover / lighter accent
         "kobe-red":   "#C0392B",  // alerts, badges
         "kobe-cream": "#FFF8EC",  // warm off-white tint
+
+        // ── Apple Design System (DESIGN.md) ──────────────────
+        ap: {
+          // Backgrounds
+          black:       "#000000",   // hero / dark sections
+          "near-black":"#1d1d1f",   // near-black text / dark section bg
+          gray:        "#f5f5f7",   // light section bg
+          // Dark surfaces
+          "dark-1":    "#272729",
+          "dark-2":    "#262628",
+          "dark-3":    "#28282a",
+          "dark-4":    "#2a2a2d",
+          "dark-5":    "#242426",
+          // Interactive
+          blue:        "#0071e3",   // primary CTA — ONLY accent
+          "blue-link": "#0066cc",   // links on light bg
+          "blue-dark": "#2997ff",   // links on dark bg
+          // Button states
+          "btn-active":"#ededf2",
+          "btn-light":  "#fafafc",
+        },
       },
       fontFamily: {
-        sans: ["Inter", "Noto Sans JP", "sans-serif"],
+        sans:    ["Inter", "Noto Sans JP", "sans-serif"],
+        // Apple typeface — SF Pro uses system font stack on Apple, Helvetica elsewhere
+        display: ["SF Pro Display", "SF Pro Icons", "Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
+        body:    ["SF Pro Text",    "SF Pro Icons", "Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
+      },
+      letterSpacing: {
+        // Apple's signature tight tracking values (DESIGN.md)
+        "ap-hero":  "-0.28px",
+        "ap-body":  "-0.374px",
+        "ap-link":  "-0.224px",
+        "ap-micro": "-0.12px",
+        "ap-nano":  "-0.08px",
+      },
+      lineHeight: {
+        "ap-hero":   "1.07",   // Display Hero
+        "ap-section":"1.10",   // Section Heading
+        "ap-tile":   "1.14",   // Tile Heading
+        "ap-card":   "1.19",   // Card Title
+        "ap-body":   "1.47",   // Body
+        "ap-btn":    "2.41",   // Button (relaxed)
       },
       boxShadow: {
-        "card":   "0 1px 4px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.04)",
-        "card-md":"0 2px 12px rgba(0,0,0,0.09), 0 0 1px rgba(0,0,0,0.04)",
-        "nav-top":"0 -1px 8px rgba(0,0,0,0.06)",
+        "card":     "0 1px 4px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.04)",
+        "card-md":  "0 2px 12px rgba(0,0,0,0.09), 0 0 1px rgba(0,0,0,0.04)",
+        "nav-top":  "0 -1px 8px rgba(0,0,0,0.06)",
         "nav-bottom":"0 1px 8px rgba(0,0,0,0.06)",
+        // Apple product card shadow
+        "ap-card":  "3px 5px 30px 0px rgba(0,0,0,0.22)",
+      },
+      borderRadius: {
+        // Apple radius scale
+        "ap-sm":   "5px",
+        "ap":      "8px",
+        "ap-input":"11px",
+        "ap-lg":   "12px",
+        "ap-pill": "980px",
       },
       animation: {
         "fade-in":    "fadeIn 0.3s ease-in-out",

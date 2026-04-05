@@ -4,11 +4,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Harbor design tokens ─────────────────────────────────── */
 :root {
   --harbor-50:  #FAFAF7;
   --harbor-100: #F4EDE6;
   --harbor-200: #EBE3D8;
   --harbor-800: #262220;
+}
+
+/* ── Apple Design System tokens (DESIGN.md) ───────────────── */
+:root {
+  /* Backgrounds */
+  --ap-black:       #000000;
+  --ap-near-black:  #1d1d1f;
+  --ap-gray:        #f5f5f7;
+  /* Dark surfaces */
+  --ap-dark-1:      #272729;
+  --ap-dark-2:      #262628;
+  /* Interactive — ONLY accent color */
+  --ap-blue:        #0071e3;
+  --ap-blue-link:   #0066cc;
+  --ap-blue-dark:   #2997ff;
+  --sk-focus-color: #0071e3;
+  /* Text */
+  --ap-text-light:  #1d1d1f;
+  --ap-text-muted:  rgba(0, 0, 0, 0.48);
+  /* Shadows */
+  --ap-shadow:      3px 5px 30px 0px rgba(0, 0, 0, 0.22);
+  /* Typography */
+  --font-display:   "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body:      "SF Pro Text",    "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -28,6 +53,22 @@ body {
   color: var(--harbor-800);
   font-family: 'Inter', 'Noto Sans JP', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Apple font utility classes */
+.font-ap-display { font-family: var(--font-display); }
+.font-ap-body    { font-family: var(--font-body); }
+
+/* Apple glass nav effect */
+.ap-glass {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+.ap-glass-light {
+  background: rgba(245, 245, 247, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
 /* Scrollbar */
