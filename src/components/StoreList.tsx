@@ -1,8 +1,11 @@
 'use client';
 
+import type { MutableRefObject } from 'react';
 import Link from 'next/link';
-import { Navigation, Instagram, Star, MapPin } from 'lucide-react';
+import { Navigation, Instagram, Star, MapPin, Heart, ExternalLink } from 'lucide-react';
 import type { Restaurant } from '@/types/restaurant';
+import { useFavorites } from '@/hooks/useFavorites';
+import { formatDistance } from '@/hooks/useLocation';
 
 // ── type labels & colors ─────────────────────────────────────
 const TYPE_LABEL: Record<string, string> = {
@@ -11,7 +14,6 @@ const TYPE_LABEL: Record<string, string> = {
   hormones: 'ホルモン', bar: 'バー',
 };
 
-// Accent tints for type badges (subtle, dark-bg friendly)
 const TYPE_TINT: Record<string, { bg: string; text: string; border: string }> = {
   kakuuchi:  { bg: 'rgba(139,92,246,0.12)', text: '#a78bfa', border: 'rgba(139,92,246,0.25)' },
   wine:      { bg: 'rgba(236,72,153,0.10)', text: '#f472b6', border: 'rgba(236,72,153,0.25)' },
@@ -34,11 +36,20 @@ const AREA_LABEL: Record<string, string> = {
 };
 
 // ── StoreCard ────────────────────────────────────────────────
-function StoreCard({ store }: { store: Restaurant }) {
-  const type    = store.tachinomi_type;
-  const label   = type ? (TYPE_LABEL[type] ?? '立ち飲み') : '立ち飲み';
-  const tint    = type ? (TYPE_TINT[type]  ?? TYPE_TINT.tachinomi) : TYPE_TINT.tachinomi;
-  const emoji   = type ? (TYPE_EMOJI[type] ?? '🏮') : '🏮';
+interface CardProps {
+  store: Restaurant;
+  distance?: number;
+  selected?: boolean;
+  onSelect?: () => void;
+}
+
+function StoreCard({ store, distance, selected, onSelect }: CardProps) {
+  const { toggle, has } = useFavorites();
+  const isFav  = has(store.id);
+  const type   = store.tachinomi_type;
+  const label  = type ? (TYPE_LABEL[type] ?? '立ち飲み') : '立ち飲み';
+  const tint   = type ? (TYPE_TINT[type]  ?? TYPE_TINT.tachinomi) : TYPE_TINT.tachinomi;
+  const emoji  = type ? (TYPE_EMOJI[type] ?? '🏮') : '🏮';
   const photoUrl = store.photo_reference
     ? `/api/photo?ref=${encodeURIComponent(store.photo_reference)}`
     : null;
@@ -46,16 +57,27 @@ function StoreCard({ store }: { store: Restaurant }) {
   const areaStr   = AREA_LABEL[store.area] ?? store.area;
   const budgetStr = store.budget_max ? `〜¥${store.budget_max.toLocaleString()}` : null;
 
+  // Google Maps walking directions
+  const navUrl = store.lat && store.lng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${store.lat},${store.lng}&travelmode=walking`
+    : store.google_maps_url ?? null;
+
   return (
     <div
       className="ln-card group overflow-hidden transition-all duration-150"
-      style={{ borderRadius: 10 }}
+      style={{
+        borderRadius: 10,
+        borderColor: selected ? 'rgba(94,106,210,0.5)' : undefined,
+        background: selected ? 'rgba(94,106,210,0.06)' : undefined,
+      }}
+      onClick={onSelect}
     >
       {/* ── メイン行（タップで詳細） ── */}
-      <Link href={`/stores/${store.id}`} className="flex gap-3 px-4 py-3.5">
+      <div className="flex gap-3 px-4 py-3.5">
 
         {/* サムネイル */}
-        <div
+        <Link
+          href={`/stores/${store.id}`}
           className="relative flex-shrink-0 rounded-lg overflow-hidden"
           style={{ width: 68, height: 68, background: '#191a1b' }}
         >
@@ -87,22 +109,27 @@ function StoreCard({ store }: { store: Restaurant }) {
               NEW
             </span>
           )}
-        </div>
+        </Link>
 
         {/* 店舗情報 */}
-        <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
 
           {/* 店名 + タイプバッジ */}
           <div className="flex items-start gap-2">
-            <p
-              className="flex-1 min-w-0 truncate"
-              style={{
-                fontSize: 15, fontWeight: 510, color: '#f7f8f8',
-                letterSpacing: '-0.165px', lineHeight: 1.4,
-              }}
+            <Link
+              href={`/stores/${store.id}`}
+              className="flex-1 min-w-0"
             >
-              {store.name}
-            </p>
+              <p
+                className="truncate"
+                style={{
+                  fontSize: 15, fontWeight: 510, color: '#f7f8f8',
+                  letterSpacing: '-0.165px', lineHeight: 1.4,
+                }}
+              >
+                {store.name}
+              </p>
+            </Link>
             <span
               className="flex-shrink-0"
               style={{
@@ -135,55 +162,86 @@ function StoreCard({ store }: { store: Restaurant }) {
                 {store.rating.toFixed(1)}
               </span>
             )}
+            {distance != null && (
+              <span
+                className="flex items-center gap-0.5"
+                style={{ color: '#27a644', fontWeight: 510 }}
+              >
+                📍 {formatDistance(distance)}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* 矢印 */}
-        <div className="flex items-center flex-shrink-0" style={{ color: '#3e3e44' }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </div>
-      </Link>
-
-      {/* ── アクションボタン（外部リンク） ── */}
-      {(store.instagram_handle || store.google_maps_url) && (
-        <div
-          className="flex items-center gap-2 px-4 pb-3"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}
+        {/* お気に入りボタン */}
+        <button
+          onClick={e => { e.stopPropagation(); toggle(store.id); }}
+          className="flex items-center justify-center flex-shrink-0 self-start mt-1"
+          style={{ width: 28, height: 28 }}
         >
-          {store.instagram_handle && (
-            <a
-              href={`https://www.instagram.com/${store.instagram_handle.replace(/^@/, '')}/`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ln-btn-ghost flex items-center gap-1.5"
-              style={{ padding: '5px 11px', fontSize: 12 }}
-            >
-              <Instagram style={{ width: 12, height: 12 }} />
-              Instagram
-            </a>
-          )}
-          {store.google_maps_url && (
-            <a
-              href={store.google_maps_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ln-btn-ghost flex items-center gap-1.5"
-              style={{ padding: '5px 11px', fontSize: 12 }}
-            >
-              <Navigation style={{ width: 12, height: 12 }} />
-              マップ
-            </a>
-          )}
-        </div>
-      )}
+          <Heart
+            style={{
+              width: 16, height: 16,
+              fill: isFav ? '#f472b6' : 'none',
+              color: isFav ? '#f472b6' : '#3e3e44',
+              transition: 'all 0.15s',
+            }}
+          />
+        </button>
+      </div>
+
+      {/* ── アクション行 ── */}
+      <div
+        className="flex items-center gap-2 px-4 pb-3"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}
+      >
+        {store.instagram_handle && (
+          <a
+            href={`https://www.instagram.com/${store.instagram_handle.replace(/^@/, '')}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="ln-btn-ghost flex items-center gap-1.5"
+            style={{ padding: '5px 11px', fontSize: 12 }}
+          >
+            <Instagram style={{ width: 12, height: 12 }} />
+            Instagram
+          </a>
+        )}
+        <div style={{ flex: 1 }} />
+        {navUrl && (
+          <a
+            href={navUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="flex items-center gap-1.5"
+            style={{
+              padding: '6px 14px', fontSize: 12, fontWeight: 510,
+              background: '#5e6ad2', color: '#fff',
+              borderRadius: 7, letterSpacing: '-0.13px',
+              lineHeight: 1,
+            }}
+          >
+            <ExternalLink style={{ width: 11, height: 11 }} />
+            今行く
+          </a>
+        )}
+      </div>
     </div>
   );
 }
 
 // ── StoreList ────────────────────────────────────────────────
-export default function StoreList({ stores }: { stores: Restaurant[] }) {
+interface ListProps {
+  stores: Restaurant[];
+  distances?: Record<string, number>;
+  selectedId?: string | null;
+  onSelect?: (id: string) => void;
+  cardRefs?: MutableRefObject<Record<string, HTMLDivElement>>;
+}
+
+export default function StoreList({ stores, distances, selectedId, onSelect, cardRefs }: ListProps) {
   if (stores.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3">
@@ -196,7 +254,17 @@ export default function StoreList({ stores }: { stores: Restaurant[] }) {
   return (
     <div className="flex flex-col gap-1.5 px-3 py-3">
       {stores.map(store => (
-        <StoreCard key={store.id} store={store} />
+        <div
+          key={store.id}
+          ref={el => { if (el && cardRefs) cardRefs.current[store.id] = el; }}
+        >
+          <StoreCard
+            store={store}
+            distance={distances?.[store.id]}
+            selected={store.id === selectedId}
+            onSelect={onSelect ? () => onSelect(store.id) : undefined}
+          />
+        </div>
       ))}
     </div>
   );

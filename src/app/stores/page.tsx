@@ -1,12 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import StoreList from '@/components/StoreList';
 import BottomNav from '@/components/BottomNav';
 import { useCourse } from '@/hooks/useCourse';
+import { useLocation, haversineKm } from '@/hooks/useLocation';
 import type { Restaurant } from '@/types/restaurant';
-import { Search, X, SlidersHorizontal, Map } from 'lucide-react';
+import { Search, X, SlidersHorizontal, Map, List, LocateFixed, Loader2 } from 'lucide-react';
+
+// SSR無効でStoreMapPanelをロード
+const StoreMapPanel = dynamic(() => import('@/components/StoreMapPanel'), { ssr: false });
 
 // ── エリア ──────────────────────────────────────────────────
 const AREAS = [
@@ -51,6 +56,8 @@ const BUDGET_OPTIONS = [
   { label: '〜¥2,000', max: '2000' },
 ];
 
+type ViewMode = 'list' | 'split';
+
 // ── ページコンポーネント ─────────────────────────────────────
 export default function StoresPage() {
   const [area,          setArea]          = useState('');
@@ -62,8 +69,13 @@ export default function StoresPage() {
   const [stores,        setStores]        = useState<Restaurant[]>([]);
   const [total,         setTotal]         = useState(0);
   const [isLoading,     setIsLoading]     = useState(true);
+  const [viewMode,      setViewMode]      = useState<ViewMode>('list');
+  const [selectedId,    setSelectedId]    = useState<string | null>(null);
   const { count: courseCount } = useCourse();
-  const searchRef = useRef<HTMLInputElement>(null);
+  const { location, loading: locLoading, request: requestLocation } = useLocation();
+  const searchRef   = useRef<HTMLInputElement>(null);
+  const listRef     = useRef<HTMLDivElement>(null);
+  const cardRefs    = useRef<Record<string, HTMLDivElement>>({});
 
   // キーワード debounce
   useEffect(() => {
@@ -94,6 +106,35 @@ export default function StoresPage() {
   }, [area, activeFilter, budgetMax, debKeyword]);
 
   useEffect(() => { fetchStores(); }, [fetchStores]);
+
+  // 距離計算
+  const distances = useMemo<Record<string, number>>(() => {
+    if (!location) return {};
+    return Object.fromEntries(
+      stores
+        .filter(s => s.lat && s.lng)
+        .map(s => [s.id, haversineKm(location.lat, location.lng, s.lat!, s.lng!)])
+    );
+  }, [location, stores]);
+
+  // 現在地ソート済みリスト
+  const sortedStores = useMemo(() => {
+    if (!location || Object.keys(distances).length === 0) return stores;
+    return [...stores].sort((a, b) => {
+      const da = distances[a.id] ?? Infinity;
+      const db = distances[b.id] ?? Infinity;
+      return da - db;
+    });
+  }, [stores, distances, location]);
+
+  // 選択時: リストの対応カードにスクロール
+  const handleSelect = useCallback((id: string) => {
+    setSelectedId(id);
+    const el = cardRefs.current[id];
+    if (el && listRef.current) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, []);
 
   const hasFilters = area !== '' || activeFilter !== 'all' || budgetMax !== '' || debKeyword !== '';
 
@@ -127,6 +168,56 @@ export default function StoresPage() {
           神戸立ち飲みマップ
         </span>
         <div className="flex items-center gap-2">
+          {/* 現在地ボタン */}
+          <button
+            onClick={requestLocation}
+            className="flex items-center justify-center ln-btn-ghost"
+            style={{
+              width: 32, height: 32, padding: 0,
+              color: location ? '#27a644' : locLoading ? '#7170ff' : '#62666d',
+            }}
+            title="現在地を取得"
+          >
+            {locLoading
+              ? <Loader2 style={{ width: 15, height: 15 }} className="animate-spin" />
+              : <LocateFixed style={{ width: 15, height: 15 }} />
+            }
+          </button>
+
+          {/* ビュー切替 */}
+          <div
+            className="flex items-center"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 7,
+              overflow: 'hidden',
+            }}
+          >
+            <button
+              onClick={() => setViewMode('list')}
+              className="flex items-center justify-center"
+              style={{
+                width: 30, height: 26, fontSize: 12,
+                color: viewMode === 'list' ? '#f7f8f8' : '#62666d',
+                background: viewMode === 'list' ? 'rgba(255,255,255,0.08)' : 'transparent',
+              }}
+            >
+              <List style={{ width: 13, height: 13 }} />
+            </button>
+            <button
+              onClick={() => setViewMode('split')}
+              className="flex items-center justify-center"
+              style={{
+                width: 30, height: 26, fontSize: 12,
+                color: viewMode === 'split' ? '#f7f8f8' : '#62666d',
+                background: viewMode === 'split' ? 'rgba(255,255,255,0.08)' : 'transparent',
+              }}
+            >
+              <Map style={{ width: 13, height: 13 }} />
+            </button>
+          </div>
+
           {courseCount > 0 && (
             <Link
               href="/map"
@@ -140,14 +231,6 @@ export default function StoresPage() {
               🍺 {courseCount}店
             </Link>
           )}
-          <Link
-            href="/map"
-            className="flex items-center gap-1 ln-btn-ghost"
-            style={{ padding: '5px 11px', fontSize: 12 }}
-          >
-            <Map style={{ width: 13, height: 13 }} />
-            地図
-          </Link>
         </div>
       </header>
 
@@ -277,7 +360,7 @@ export default function StoresPage() {
         </div>
       </div>
 
-      {/* ── 件数 + リセット ─────────────────────────────────── */}
+      {/* ── 件数 + リセット + ソート表示 ──────────────────────── */}
       <div
         className="flex-shrink-0 flex items-center justify-between px-4 py-2"
         style={{ background: '#0f1011', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
@@ -287,6 +370,9 @@ export default function StoresPage() {
             <>
               <span style={{ color: '#d0d6e0', fontWeight: 510 }}>{total}</span>
               {' 店舗'}
+              {location && (
+                <span style={{ color: '#27a644', marginLeft: 6 }}>· 近い順</span>
+              )}
             </>
           )}
         </span>
@@ -302,21 +388,47 @@ export default function StoresPage() {
         )}
       </div>
 
-      {/* ── 店舗リスト ───────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto" style={{ background: '#0f1011' }}>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <div
-              className="w-6 h-6 rounded-full animate-spin"
-              style={{
-                border: '2px solid rgba(255,255,255,0.08)',
-                borderTopColor: '#7170ff',
-              }}
+      {/* ── コンテンツ エリア ────────────────────────────────── */}
+      <div className="flex-1 overflow-hidden flex flex-col" style={{ background: '#0f1011' }}>
+
+        {viewMode === 'split' && (
+          /* 地図パネル (上半分) */
+          <div className="flex-shrink-0" style={{ height: '42%', minHeight: 200 }}>
+            <StoreMapPanel
+              stores={sortedStores}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              userLocation={location}
             />
           </div>
-        ) : (
-          <StoreList stores={stores} />
         )}
+
+        {/* 店舗リスト */}
+        <div
+          ref={listRef}
+          className="flex-1 overflow-y-auto"
+          style={{ background: '#0f1011' }}
+        >
+          {isLoading ? (
+            <div className="flex items-center justify-center py-24">
+              <div
+                className="w-6 h-6 rounded-full animate-spin"
+                style={{
+                  border: '2px solid rgba(255,255,255,0.08)',
+                  borderTopColor: '#7170ff',
+                }}
+              />
+            </div>
+          ) : (
+            <StoreList
+              stores={sortedStores}
+              distances={distances}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              cardRefs={cardRefs}
+            />
+          )}
+        </div>
       </div>
 
       <BottomNav courseCount={courseCount} />
