@@ -8,37 +8,58 @@ import SpotCard from './SpotCard';
 import MoodCards from './MoodCards';
 import { Message, Language } from '@/types';
 
+const INK = '#262220';
+const PAPER = '#F3ECDD';
+const PAPER_LIGHT = '#FAF4E6';
+const RULE = '#D5CBBE';
+const MUTE = '#857E78';
+
 function MessageBubble({ msg, conversationId }: { msg: Message; conversationId?: string }) {
   const isUser = msg.role === 'user';
 
   return (
-    <div className={`flex flex-col gap-3 animate-fade-in ${isUser ? 'items-end' : 'items-start'}`}>
-      {!isUser && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm">🏮</span>
-          <span className="text-harbor-500 text-xs">案内</span>
+    <div className={`flex flex-col gap-2 animate-fade-in ${isUser ? 'items-end' : 'items-start'}`}>
+      <div className={`flex items-center gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
+        <span
+          className="text-[10px] tracking-[0.2em] uppercase"
+          style={{ color: MUTE, fontWeight: 700 }}
+        >
+          {isUser ? '客' : '案内'}
+        </span>
+        <span className="h-px w-6" style={{ background: RULE }} />
+      </div>
+
+      {isUser ? (
+        <div
+          className="max-w-[85%] text-[13.5px] leading-[1.8] whitespace-pre-wrap text-right"
+          style={{ color: INK }}
+        >
+          {msg.content}
+        </div>
+      ) : (
+        <div
+          className="max-w-[85%] px-4 py-3 text-[13.5px] leading-[1.8] whitespace-pre-wrap"
+          style={{
+            background: PAPER_LIGHT,
+            color: INK,
+            border: `1px solid ${INK}`,
+          }}
+        >
+          {msg.isLoading ? (
+            <div className="flex items-center gap-2 py-0.5">
+              <span
+                className="inline-block h-px w-10 animate-pulse"
+                style={{ background: INK }}
+              />
+              <span className="text-[11px] tracking-[0.1em]" style={{ color: MUTE }}>
+                考え中
+              </span>
+            </div>
+          ) : (
+            msg.content
+          )}
         </div>
       )}
-      <div
-        className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-          isUser
-            ? 'bg-kobe-gold text-harbor-950 rounded-tr-sm font-medium shadow-sm'
-            : 'bg-white text-harbor-700 rounded-tl-sm border border-harbor-200 shadow-card'
-        }`}
-      >
-        {msg.isLoading ? (
-          <div className="flex items-center gap-2 py-0.5">
-            <span className="flex gap-1">
-              <span className="w-1.5 h-1.5 bg-kobe-gold rounded-full animate-bounce [animation-delay:0ms]" />
-              <span className="w-1.5 h-1.5 bg-kobe-gold rounded-full animate-bounce [animation-delay:150ms]" />
-              <span className="w-1.5 h-1.5 bg-kobe-gold rounded-full animate-bounce [animation-delay:300ms]" />
-            </span>
-            <span className="text-harbor-500 text-xs">考え中...</span>
-          </div>
-        ) : (
-          msg.content
-        )}
-      </div>
 
       {msg.spots && msg.spots.length > 0 && (
         <div className="w-full max-w-sm space-y-3">
@@ -143,7 +164,7 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-harbor-50">
+    <div className="flex flex-col h-full" style={{ background: PAPER }}>
       {/* メッセージエリア */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 scroll-smooth">
 
@@ -170,13 +191,15 @@ export default function ChatInterface() {
               <div className="mt-5 flex flex-col items-center gap-3">
                 <button
                   onClick={() => sendMessage('今夜のおすすめを教えてください')}
-                  className="w-full max-w-xs px-6 py-4 bg-kobe-gold text-harbor-950 font-bold text-base rounded-2xl shadow-md active:scale-95 hover:bg-kobe-amber transition-all duration-150"
+                  className="w-full max-w-xs px-6 py-4 font-bold text-[15px] tracking-[0.06em] active:scale-[0.98] transition-all duration-150"
+                  style={{ background: INK, color: PAPER }}
                 >
                   案内してもらう
                 </button>
                 <Link
                   href="/stores"
-                  className="text-harbor-500 text-sm hover:text-harbor-700 transition-colors"
+                  className="text-sm tracking-[0.02em]"
+                  style={{ color: MUTE }}
                 >
                   自分で探す →
                 </Link>
@@ -226,7 +249,10 @@ export default function ChatInterface() {
       </div>
 
       {/* 入力エリア */}
-      <div className="border-t border-harbor-200 bg-white/95 backdrop-blur-sm px-4 py-3 shadow-nav-top">
+      <div
+        className="px-4 py-3"
+        style={{ background: PAPER, borderTop: `1px solid ${INK}` }}
+      >
         <form onSubmit={handleSubmit} className="flex items-end gap-2">
           <div className="flex-1">
             <textarea
@@ -235,7 +261,12 @@ export default function ChatInterface() {
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="今夜の気分を教えてください... / English OK"
-              className="w-full bg-harbor-100 border border-harbor-200 text-harbor-800 placeholder-harbor-400 rounded-2xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-kobe-gold/60 focus:bg-white transition-all min-h-[48px] max-h-[120px] leading-relaxed"
+              className="w-full px-4 py-3 text-[14px] resize-none focus:outline-none transition-colors min-h-[48px] max-h-[120px] leading-relaxed"
+              style={{
+                background: PAPER_LIGHT,
+                border: `1px solid ${INK}`,
+                color: INK,
+              }}
               rows={1}
               disabled={isLoading}
             />
@@ -243,16 +274,20 @@ export default function ChatInterface() {
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="flex-shrink-0 w-11 h-11 flex items-center justify-center bg-kobe-gold hover:bg-kobe-amber disabled:opacity-40 disabled:cursor-not-allowed rounded-2xl transition-all duration-150 shadow-card"
+            className="flex-shrink-0 w-11 h-11 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-150"
+            style={{ background: INK, color: PAPER }}
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 text-harbor-950 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Send className="w-4 h-4 text-harbor-950" />
+              <Send className="w-4 h-4" />
             )}
           </button>
         </form>
-        <p className="text-harbor-400 text-[10px] text-center mt-2">
+        <p
+          className="text-[10px] text-center mt-2 tracking-[0.08em]"
+          style={{ color: MUTE }}
+        >
           広告・スポンサーなし · 中立な案内
         </p>
       </div>

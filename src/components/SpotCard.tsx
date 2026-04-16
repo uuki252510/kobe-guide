@@ -9,6 +9,18 @@ interface SpotCardProps {
   language?: string;
 }
 
+const C = {
+  surface:    '#FAF4E6',
+  ink:        '#262220',
+  inkSoft:    '#3D3832',
+  mute:       '#857E78',
+  rule:       '#D5CBBE',
+  accent:     '#B94A3B',
+  green:      '#2E7D5B',
+  inkOnPaper: '#FAF4E6',
+  amber:      '#9A6A18',
+};
+
 const areaLabel: Record<string, string> = {
   sannomiya:   '三宮 / Sannomiya',
   motomachi:   '元町 / Motomachi',
@@ -49,80 +61,128 @@ export default function SpotCard({ spot, conversationId }: SpotCardProps) {
   const primaryCategory = spot.category[0];
   const emoji = categoryEmoji[primaryCategory] || '📍';
 
+  const chipStyle: React.CSSProperties = {
+    padding: '2px 8px',
+    background: 'transparent',
+    border: `1px solid ${C.ink}`,
+    color: C.inkSoft,
+    fontSize: 11,
+    fontWeight: 600,
+    borderRadius: 0,
+    letterSpacing: '0.04em',
+    lineHeight: 1.5,
+  };
+
   return (
-    <div className="animate-slide-up bg-white border border-harbor-200 rounded-2xl overflow-hidden shadow-card-md hover:shadow-card hover:border-harbor-300 transition-all duration-200">
-      {/* Header */}
+    <div
+      className="animate-slide-up overflow-hidden"
+      style={{
+        background: C.surface,
+        border: `1px solid ${C.ink}`,
+        borderRadius: 0,
+      }}
+    >
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">{emoji}</span>
-              <h3 className="font-semibold text-harbor-800 text-base leading-tight truncate">
+              <span style={{ fontSize: 18 }}>{emoji}</span>
+              <h3
+                className="truncate"
+                style={{
+                  fontWeight: 700, color: C.ink,
+                  fontSize: 15, lineHeight: 1.4,
+                  letterSpacing: '-0.01em',
+                }}
+              >
                 {spot.name}
               </h3>
             </div>
-            <div className="flex items-center gap-1 text-harbor-500 text-xs">
+            <div
+              className="flex items-center gap-1"
+              style={{ color: C.mute, fontSize: 11 }}
+            >
               <MapPin className="w-3 h-3 flex-shrink-0" />
               <span>{areaLabel[spot.area] || spot.area}</span>
             </div>
           </div>
           <div className="text-right flex-shrink-0">
-            <div className="text-kobe-gold font-semibold text-sm">{budgetStr}</div>
-            <div className="text-harbor-400 text-xs">/ 人</div>
+            <div style={{ color: C.ink, fontWeight: 700, fontSize: 13 }}>
+              {budgetStr}
+            </div>
+            <div
+              style={{
+                color: C.mute, fontSize: 10,
+                letterSpacing: '0.12em',
+                marginTop: 1,
+              }}
+            >
+              / 人
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Highlight */}
       {spot.highlight && (
-        <div className="px-4 pb-2">
-          <p className="text-harbor-600 text-sm italic leading-relaxed border-l-2 border-kobe-gold/40 pl-3">
-            "{spot.highlight}"
+        <div className="px-4 pb-3">
+          <p
+            className="leading-relaxed"
+            style={{
+              color: C.inkSoft, fontSize: 13,
+              borderLeft: `2px solid ${C.ink}`,
+              paddingLeft: 10,
+              lineHeight: 1.7,
+            }}
+          >
+            {spot.highlight}
           </p>
         </div>
       )}
 
-      {/* Description */}
       {spot.description && (
         <div className="px-4 pb-3">
-          <p className="text-harbor-600 text-sm leading-relaxed line-clamp-3">
+          <p
+            className="line-clamp-3"
+            style={{
+              color: C.inkSoft, fontSize: 13,
+              lineHeight: 1.7,
+            }}
+          >
             {spot.description}
           </p>
         </div>
       )}
 
-      {/* Tags */}
       <div className="px-4 pb-3 flex flex-wrap gap-1.5">
         {spot.vibe_tags.slice(0, 4).map(tag => (
-          <span
-            key={tag}
-            className="px-2 py-0.5 bg-harbor-100 text-harbor-600 text-xs rounded-full border border-harbor-200 capitalize"
-          >
+          <span key={tag} className="capitalize" style={chipStyle}>
             {tag.replace(/-/g, ' ')}
           </span>
         ))}
         {spot.solo_friendly && (
-          <span className="px-2 py-0.5 bg-green-50 text-green-600 text-xs rounded-full border border-green-200 flex items-center gap-1">
+          <span className="flex items-center gap-1" style={chipStyle}>
             <Users className="w-3 h-3" /> Solo OK
           </span>
         )}
         {spot.english_menu && (
-          <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-full border border-blue-200 flex items-center gap-1">
+          <span className="flex items-center gap-1" style={chipStyle}>
             <Globe className="w-3 h-3" /> EN menu
           </span>
         )}
         {spot.cashless && (
-          <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs rounded-full border border-purple-200 flex items-center gap-1">
+          <span className="flex items-center gap-1" style={chipStyle}>
             <CreditCard className="w-3 h-3" /> Card OK
           </span>
         )}
       </div>
 
-      {/* Opening hours */}
       {Object.keys(spot.opening_hours || {}).length > 0 && (
-        <div className="px-4 pb-2 flex items-start gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-harbor-400 mt-0.5 flex-shrink-0" />
-          <div className="text-harbor-500 text-xs">
+        <div className="px-4 pb-3 flex items-start gap-1.5">
+          <Clock
+            className="w-3.5 h-3.5 flex-shrink-0"
+            style={{ color: C.mute, marginTop: 2 }}
+          />
+          <div style={{ color: C.mute, fontSize: 11, lineHeight: 1.6 }}>
             {Object.entries(spot.opening_hours)
               .slice(0, 2)
               .map(([days, hours]) => (
@@ -134,26 +194,42 @@ export default function SpotCard({ spot, conversationId }: SpotCardProps) {
         </div>
       )}
 
-      {/* Caution note */}
       {spot.caution && (
-        <div className="mx-4 mb-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-amber-700 text-xs leading-relaxed">
-            ⚠️ {spot.caution}
+        <div
+          className="mx-4 mb-3 px-3 py-2"
+          style={{
+            background: 'transparent',
+            border: `1px solid ${C.amber}`,
+            borderRadius: 0,
+          }}
+        >
+          <p
+            style={{
+              color: C.amber, fontSize: 11, lineHeight: 1.7,
+            }}
+          >
+            ⚠ {spot.caution}
           </p>
         </div>
       )}
 
-      {/* Action buttons */}
       <div className="px-4 pb-4 flex gap-2">
         <a
           href={spot.google_maps_url}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => trackClick(spot.id, conversationId, 'maps')}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-kobe-gold text-harbor-950 rounded-xl text-sm font-semibold hover:bg-kobe-amber transition-colors shadow-card"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5"
+          style={{
+            background: C.ink, color: C.inkOnPaper,
+            fontSize: 13, fontWeight: 700,
+            borderRadius: 0,
+            letterSpacing: '0.08em',
+            lineHeight: 1,
+          }}
         >
           <MapPin className="w-4 h-4" />
-          Maps
+          MAPS
         </a>
         {spot.reservation_url && (
           <a
@@ -161,16 +237,32 @@ export default function SpotCard({ spot, conversationId }: SpotCardProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackClick(spot.id, conversationId, 'reservation')}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-harbor-100 text-harbor-700 rounded-xl text-sm font-medium hover:bg-harbor-200 transition-colors border border-harbor-200"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5"
+            style={{
+              background: 'transparent',
+              border: `1px solid ${C.ink}`,
+              color: C.ink,
+              fontSize: 13, fontWeight: 700,
+              borderRadius: 0,
+              letterSpacing: '0.08em',
+              lineHeight: 1,
+            }}
           >
             <CalendarCheck className="w-4 h-4" />
-            Reserve
+            RESERVE
           </a>
         )}
         {!spot.reservation_url && (
           <button
             onClick={() => trackClick(spot.id, conversationId, 'card_view')}
-            className="px-3 py-2.5 bg-harbor-100 text-harbor-500 rounded-xl text-sm hover:bg-harbor-200 transition-colors border border-harbor-200"
+            className="flex items-center justify-center py-2.5"
+            style={{
+              padding: '10px 14px',
+              background: 'transparent',
+              border: `1px solid ${C.ink}`,
+              color: C.ink,
+              borderRadius: 0,
+            }}
           >
             <ExternalLink className="w-4 h-4" />
           </button>

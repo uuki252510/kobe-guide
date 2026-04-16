@@ -10,6 +10,10 @@ interface Props {
   onBlock?: () => void;
 }
 
+const INK    = '#262220';
+const PAPER  = '#F3ECDD';
+const ACCENT = '#B94A3B';
+
 export default function BlockButton({ targetUserId, isBlocked: initialBlocked = false, onBlock }: Props) {
   const { user, accessToken } = useAuth();
   const [open, setOpen] = useState(false);
@@ -40,25 +44,42 @@ export default function BlockButton({ targetUserId, isBlocked: initialBlocked = 
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="p-1.5 rounded-full text-harbor-500 hover:text-harbor-300 hover:bg-harbor-800 transition-colors"
-        aria-label="その他の操作"
+        className="flex items-center justify-center"
+        style={{
+          width: 32, height: 32,
+          background: 'transparent',
+          border: `1px solid ${INK}`,
+          color: INK,
+          borderRadius: 0,
+        }}
+        aria-label="その他"
       >
         <MoreVertical className="w-4 h-4" />
       </button>
 
       {open && (
         <>
-          {/* Backdrop */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-8 z-50 w-44 rounded-xl bg-harbor-900 border border-harbor-700 shadow-xl overflow-hidden">
+          <div
+            className="absolute right-0 top-10 z-50 overflow-hidden"
+            style={{
+              width: 176,
+              background: PAPER,
+              border: `1px solid ${INK}`,
+              borderRadius: 0,
+            }}
+          >
             <button
               onClick={handleBlock}
               disabled={loading}
-              className={`w-full flex items-center gap-2 px-4 py-3 text-sm transition-colors ${
-                blocked
-                  ? 'text-kobe-gold hover:bg-harbor-800'
-                  : 'text-kobe-red hover:bg-kobe-red/10'
-              }`}
+              className="w-full flex items-center gap-2 px-4 py-3"
+              style={{
+                fontSize: 13,
+                color: blocked ? INK : ACCENT,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                background: 'transparent',
+              }}
             >
               {blocked ? (
                 <>

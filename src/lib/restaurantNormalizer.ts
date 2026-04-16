@@ -5,9 +5,9 @@ import { PlaceResult, SearchQuery, Restaurant, PriceLevel, BusinessStatus } from
 // 飲食店・居酒屋・バーを想定した神戸価格帯
 // ============================================================
 const PRICE_LEVEL_BUDGET: Record<string, { min: number; max: number }> = {
-  PRICE_LEVEL_FREE:           { min: 0,    max: 500   },
-  PRICE_LEVEL_INEXPENSIVE:    { min: 500,  max: 2000  }, // 立ち飲み・ラーメン
-  PRICE_LEVEL_MODERATE:       { min: 2000, max: 5000  }, // 居酒屋・バー
+  PRICE_LEVEL_FREE:           { min: 1000, max: 2000  }, // データ欠損時のfallback
+  PRICE_LEVEL_INEXPENSIVE:    { min: 1000, max: 2500  }, // 立ち飲み・角打ち（1〜2杯＋アテ）
+  PRICE_LEVEL_MODERATE:       { min: 2500, max: 5000  }, // 居酒屋・バー
   PRICE_LEVEL_EXPENSIVE:      { min: 5000, max: 10000 }, // 神戸牛・高級居酒屋
   PRICE_LEVEL_VERY_EXPENSIVE: { min: 10000, max: 25000 },
 };

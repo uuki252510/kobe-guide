@@ -6,9 +6,33 @@ import { FeedActivity } from '@/types/social';
 import FeedItem from '@/components/social/FeedItem';
 import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
-import { Loader2, RefreshCw, Users, LogIn } from 'lucide-react';
+import { RefreshCw, Users, LogIn } from 'lucide-react';
 
 const PAGE_SIZE = 20;
+
+const C = {
+  paper:      '#F3ECDD',
+  surface:    '#FAF4E6',
+  ink:        '#262220',
+  inkSoft:    '#3D3832',
+  mute:       '#857E78',
+  rule:       '#D5CBBE',
+  inkOnPaper: '#FAF4E6',
+};
+
+function LinePulse({ label = '読み込み中' }: { label?: string }) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <span
+        className="inline-block animate-pulse"
+        style={{ width: 40, height: 1, background: C.ink }}
+      />
+      <span style={{ fontSize: 10, color: C.mute, letterSpacing: '0.2em' }}>
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export default function FeedPage() {
   const { user, accessToken, loading: authLoading } = useAuth();
@@ -53,62 +77,101 @@ export default function FeedPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-harbor-950 flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-kobe-gold animate-spin" />
+      <div
+        className="min-h-dvh flex items-center justify-center"
+        style={{ background: C.paper }}
+      >
+        <LinePulse />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-harbor-950 flex flex-col items-center justify-center gap-4 px-6 pb-24">
-        <Users className="w-12 h-12 text-harbor-700" />
-        <h2 className="text-harbor-200 font-bold text-lg text-center">
-          フォローしたユーザーの<br />動向をチェックしよう
+      <main
+        className="min-h-dvh flex flex-col items-center justify-center gap-4 px-6 pb-24"
+        style={{ background: C.paper }}
+      >
+        <Users style={{ width: 40, height: 40, color: C.mute, opacity: 0.5 }} />
+        <h2
+          className="text-center"
+          style={{ fontSize: 16, fontWeight: 700, color: C.ink, lineHeight: 1.6, letterSpacing: '-0.01em' }}
+        >
+          フォローした人の<br />動向を追う
         </h2>
-        <p className="text-harbor-500 text-sm text-center">
-          ログインするとフォロー中のユーザーの<br />お気に入りや訪問情報が流れてきます
+        <p
+          className="text-center"
+          style={{ fontSize: 12, color: C.mute, lineHeight: 1.8 }}
+        >
+          お気に入りと訪問記録が流れる
         </p>
         <Link
           href="/auth"
-          className="mt-2 flex items-center gap-2 px-6 py-3 rounded-full bg-kobe-gold text-harbor-950 font-bold text-sm"
+          className="mt-2 flex items-center gap-2"
+          style={{
+            padding: '11px 22px',
+            background: C.ink,
+            color: C.inkOnPaper,
+            fontWeight: 700,
+            fontSize: 13,
+            borderRadius: 0,
+            letterSpacing: '0.08em',
+            lineHeight: 1,
+          }}
         >
           <LogIn className="w-4 h-4" />
-          ログイン / 新規登録
+          ログイン
         </Link>
         <BottomNav />
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-harbor-950 max-w-lg mx-auto pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-harbor-950/95 backdrop-blur-sm border-b border-harbor-800 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-harbor-100 font-bold text-base">フィード</h1>
+    <main
+      className="min-h-dvh max-w-lg mx-auto pb-24"
+      style={{ background: C.paper }}
+    >
+      <header
+        className="sticky top-0 z-10 px-4 py-3 flex items-center justify-between"
+        style={{
+          background: C.paper,
+          borderBottom: `1px solid ${C.ink}`,
+        }}
+      >
+        <h1 style={{ fontSize: 15, fontWeight: 700, color: C.ink, letterSpacing: '-0.01em' }}>
+          フィード
+        </h1>
         <button
           onClick={() => loadFeed(true)}
           disabled={refreshing}
-          className="p-1.5 rounded-full text-harbor-500 hover:text-harbor-300 hover:bg-harbor-800 transition-colors"
+          className="flex items-center justify-center"
+          style={{
+            width: 32, height: 32,
+            border: `1px solid ${C.ink}`,
+            background: 'transparent',
+            color: C.ink,
+            borderRadius: 0,
+          }}
+          aria-label="更新"
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
         </button>
-      </div>
+      </header>
 
-      {/* Feed list */}
       {activities.length === 0 && !refreshing ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 px-6">
-          <Users className="w-10 h-10 text-harbor-700" />
-          <p className="text-harbor-400 text-sm text-center">
-            まだフィードがありません。<br />
-            気になるユーザーをフォローしてみましょう！
+          <Users style={{ width: 36, height: 36, color: C.mute, opacity: 0.5 }} />
+          <p className="text-center" style={{ fontSize: 12, color: C.mute, lineHeight: 1.8 }}>
+            まだフィードはない。<br />
+            誰かをフォローしてみる。
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-harbor-900">
+        <div style={{ background: C.surface, borderBottom: `1px solid ${C.rule}` }}>
           {refreshing ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="w-5 h-5 text-kobe-gold animate-spin" />
+            <div className="flex justify-center py-10">
+              <LinePulse />
             </div>
           ) : (
             activities.map((a) => <FeedItem key={a.id} activity={a} />)
@@ -116,21 +179,33 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* Load more */}
       {hasMore && !refreshing && (
-        <div className="flex justify-center py-4">
+        <div className="flex justify-center py-5">
           <button
             onClick={() => loadFeed(false)}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2 rounded-full border border-harbor-700 text-harbor-400 text-sm hover:border-harbor-500 hover:text-harbor-200 transition-colors"
+            className="flex items-center gap-2"
+            style={{
+              padding: '9px 20px',
+              background: 'transparent',
+              border: `1px solid ${C.ink}`,
+              color: C.ink,
+              fontSize: 12,
+              fontWeight: 700,
+              borderRadius: 0,
+              letterSpacing: '0.08em',
+              lineHeight: 1,
+            }}
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {loading ? (
+              <span className="inline-block animate-pulse" style={{ width: 20, height: 1, background: C.ink }} />
+            ) : null}
             もっと見る
           </button>
         </div>
       )}
 
       <BottomNav />
-    </div>
+    </main>
   );
 }

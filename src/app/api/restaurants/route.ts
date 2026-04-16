@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
        opening_hours_json, english_support, reservation_required,
        foreigner_friendly_score, solo_friendly_score, local_experience_score,
        tachinomi_type, instagram_handle, is_new_open, open_date, must_try_menu,
-       priority_score, website, phone_number, photo_reference, internal_notes`,
+       priority_score, website, phone_number, photo_reference`,
       { count: 'exact' }
     )
     .eq('is_published', true)

@@ -1,36 +1,48 @@
 'use client';
 
-import ChatInterface from '@/components/ChatInterface';
+import FeaturedStores from '@/components/FeaturedStores';
 import BottomNav from '@/components/BottomNav';
 import LangSwitcher from '@/components/LangSwitcher';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ChevronLeft } from 'lucide-react';
 import { useCourse } from '@/hooks/useCourse';
 
-const INK    = '#262220';
-const PAPER  = '#F3ECDD';
-const MUTE   = '#857E78';
+const INK  = '#262220';
+const PAPER = '#F3ECDD';
+const MUTE = '#857E78';
 
-export default function Home() {
+export default function FeaturedPage() {
   const { count: courseCount } = useCourse();
 
   return (
-    <main className="flex flex-col h-dvh pb-14" style={{ background: PAPER }}>
-      {/* ── ヘッダー ── */}
+    <main className="flex flex-col min-h-dvh pb-14" style={{ background: PAPER }}>
       <header
-        className="flex-shrink-0 px-4 pt-3 pb-3"
+        className="sticky top-0 z-40 flex-shrink-0 px-4 pt-3 pb-3"
         style={{
           background: PAPER,
           borderBottom: `1px solid ${INK}`,
         }}
       >
         <div className="flex items-center justify-between gap-2">
-          <Link href="/" className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Link
+              href="/"
+              className="flex items-center justify-center flex-shrink-0"
+              style={{
+                width: 32, height: 32,
+                background: 'transparent',
+                border: `1px solid ${INK}`,
+                color: INK,
+              }}
+              aria-label="戻る"
+            >
+              <ChevronLeft style={{ width: 18, height: 18 }} />
+            </Link>
             <Image
               src="/logo.jpg"
-              alt="神戸立ち飲みマップ"
-              width={64}
-              height={36}
+              alt=""
+              width={40} height={24}
               className="object-contain mix-blend-multiply flex-shrink-0"
             />
             <div className="min-w-0">
@@ -38,37 +50,23 @@ export default function Home() {
                 className="font-bold text-[15px] leading-tight truncate"
                 style={{ color: INK }}
               >
-                神戸立ち飲みマップ
+                今週のおすすめ
               </h1>
-              <p
-                className="text-[10px] mt-0.5 truncate tracking-[0.02em]"
-                style={{ color: MUTE }}
-              >
-                三宮・元町 · 90店舗厳選
+              <p className="text-[10px] mt-0.5 truncate tracking-[0.02em]" style={{ color: MUTE }}>
+                編集部が選ぶ話題の90店
               </p>
             </div>
-          </Link>
+          </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <Link
-              href="/featured"
-              className="text-[11px] px-2.5 py-1.5 font-bold tracking-[0.04em]"
-              style={{
-                border: `1px solid ${INK}`,
-                color: INK,
-                background: 'transparent',
-              }}
-            >
-              おすすめ
-            </Link>
             <LangSwitcher />
             {courseCount > 0 && (
               <Link
                 href="/map"
                 className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 font-bold tracking-[0.04em]"
                 style={{
+                  background: 'transparent',
                   border: `1px solid ${INK}`,
                   color: INK,
-                  background: 'transparent',
                 }}
               >
                 🍺 {courseCount}
@@ -78,9 +76,8 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ── チャット(残りの高さを全て埋める) ── */}
-      <div className="flex-1 min-h-0">
-        <ChatInterface />
+      <div className="pt-2">
+        <FeaturedStores />
       </div>
 
       <BottomNav courseCount={courseCount} />

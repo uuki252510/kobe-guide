@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-server';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = requireAdminAuth(req);
+  if (authError) return authError;
+
   const { id } = await params;
   const body = await req.json();
   const { data, error } = await supabaseAdmin
@@ -18,9 +22,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = requireAdminAuth(req);
+  if (authError) return authError;
+
   const { id } = await params;
   const { error } = await supabaseAdmin.from('spots').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

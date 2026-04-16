@@ -6,6 +6,9 @@ import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
+const PAPER = '#F3ECDD';
+const INK   = '#262220';
+
 interface Props {
   params: Promise<{ userId: string }>;
 }
@@ -35,7 +38,6 @@ export default async function UserProfilePage({ params }: Props) {
 
   if (error || !profile) notFound();
 
-  // Fetch public favorites
   let favorites = null;
   if (profile.favorites_public) {
     const { data } = await supabaseAdmin
@@ -47,7 +49,6 @@ export default async function UserProfilePage({ params }: Props) {
     favorites = data ?? [];
   }
 
-  // Fetch public visits
   let visits = null;
   if (profile.visits_public) {
     const { data } = await supabaseAdmin
@@ -60,19 +61,38 @@ export default async function UserProfilePage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-harbor-950 pb-24">
-      {/* 戻るヘッダー */}
-      <div className="sticky top-0 z-10 bg-harbor-950/95 backdrop-blur-sm border-b border-harbor-800 px-4 py-3 flex items-center gap-3">
-        <Link href="/" className="text-harbor-400 hover:text-harbor-200 transition-colors">
-          <ArrowLeft className="w-5 h-5" />
+    <div className="min-h-screen pb-24" style={{ background: PAPER }}>
+      <div
+        className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
+        style={{
+          background: PAPER,
+          borderBottom: `1px solid ${INK}`,
+        }}
+      >
+        <Link
+          href="/"
+          className="flex items-center justify-center"
+          style={{
+            width: 32, height: 32,
+            border: `1px solid ${INK}`,
+            color: INK,
+            borderRadius: 0,
+          }}
+        >
+          <ArrowLeft className="w-4 h-4" />
         </Link>
-        <span className="text-harbor-100 font-semibold text-sm">
+        <span
+          className="truncate"
+          style={{
+            color: INK, fontWeight: 700, fontSize: 14,
+            letterSpacing: '-0.01em',
+          }}
+        >
           {profile.display_name ?? profile.username}
         </span>
       </div>
 
       <ProfileHeader profile={profile} followStatus={null} />
-      <div className="border-t border-harbor-800" />
       <ProfileTabs profile={profile} favorites={favorites} visits={visits} isOwn={false} />
       <BottomNav />
     </div>

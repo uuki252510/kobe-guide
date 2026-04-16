@@ -3,8 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Loader2, Check, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Save, Check, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+
+const C = {
+  paper:      '#F3ECDD',
+  surface:    '#FAF4E6',
+  ink:        '#262220',
+  inkSoft:    '#3D3832',
+  mute:       '#857E78',
+  rule:       '#D5CBBE',
+  green:      '#2E7D5B',
+  accent:     '#B94A3B',
+  inkOnPaper: '#FAF4E6',
+};
 
 const AREA_OPTIONS = [
   { value: '',             label: 'こだわりなし' },
@@ -12,6 +24,15 @@ const AREA_OPTIONS = [
   { value: 'motomachi',   label: '元町' },
   { value: 'surroundings', label: '周辺' },
 ];
+
+function LinePulse() {
+  return (
+    <span
+      className="inline-block animate-pulse"
+      style={{ width: 16, height: 1, background: 'currentColor' }}
+    />
+  );
+}
 
 export default function ProfileEditPage() {
   const router = useRouter();
@@ -27,7 +48,6 @@ export default function ProfileEditPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
-  // プロフィール読み込み後にフォームへ反映
   useEffect(() => {
     if (!profile) return;
     setDisplayName(profile.display_name ?? '');
@@ -37,7 +57,6 @@ export default function ProfileEditPage() {
     setVisitsPublic(profile.visits_public);
   }, [profile]);
 
-  // 未ログインはリダイレクト
   useEffect(() => {
     if (!loading && !user) router.replace('/auth');
   }, [loading, user, router]);
@@ -70,43 +89,92 @@ export default function ProfileEditPage() {
       }, 800);
     } else {
       const json = await res.json();
-      setError(json.error ?? '保存に失敗しました');
+      setError(json.error ?? '保存に失敗');
     }
     setSaving(false);
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '11px 13px',
+    background: C.surface,
+    border: `1px solid ${C.ink}`,
+    borderRadius: 0,
+    color: C.ink,
+    fontSize: 14,
+    outline: 'none',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    color: C.mute,
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: '0.2em',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-dvh bg-harbor-950">
-        <Loader2 className="w-6 h-6 text-kobe-gold animate-spin" />
+      <div
+        className="flex items-center justify-center h-dvh"
+        style={{ background: C.paper }}
+      >
+        <div style={{ color: C.ink }}>
+          <LinePulse />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-harbor-950 pb-16">
-      {/* ヘッダー */}
-      <div className="sticky top-0 z-10 bg-harbor-950/95 backdrop-blur-sm border-b border-harbor-800 px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen pb-16" style={{ background: C.paper }}>
+      <div
+        className="sticky top-0 z-10 px-4 py-3 flex items-center justify-between"
+        style={{
+          background: C.paper,
+          borderBottom: `1px solid ${C.ink}`,
+        }}
+      >
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="text-harbor-400 hover:text-harbor-200 transition-colors"
+            className="flex items-center justify-center"
+            style={{
+              width: 32, height: 32,
+              border: `1px solid ${C.ink}`,
+              color: C.ink,
+              borderRadius: 0,
+            }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
-          <span className="text-harbor-100 font-semibold text-sm">プロフィール編集</span>
+          <span
+            style={{
+              color: C.ink, fontWeight: 700, fontSize: 14,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            プロフィール編集
+          </span>
         </div>
         <button
           onClick={handleSave}
           disabled={saving || saved}
-          className={`flex items-center gap-1.5 text-xs px-4 py-2 rounded-full font-bold transition-all ${
-            saved
-              ? 'bg-green-500 text-white'
-              : 'bg-kobe-gold text-harbor-950 hover:bg-kobe-amber active:scale-95'
-          }`}
+          className="flex items-center gap-1.5"
+          style={{
+            fontSize: 11, padding: '7px 14px',
+            background: saved ? C.green : C.ink,
+            color: C.inkOnPaper,
+            fontWeight: 700,
+            borderRadius: 0,
+            letterSpacing: '0.08em',
+            lineHeight: 1,
+          }}
         >
           {saving ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <LinePulse />
           ) : saved ? (
             <Check className="w-3.5 h-3.5" />
           ) : (
@@ -117,19 +185,30 @@ export default function ProfileEditPage() {
       </div>
 
       <div className="px-4 py-6 space-y-5 max-w-lg mx-auto">
-        {/* ユーザー名（読み取り専用） */}
         <div>
-          <label className="block text-harbor-400 text-xs font-medium mb-1.5">
-            ユーザー名 <span className="text-harbor-600">(変更不可)</span>
+          <label style={labelStyle}>
+            ユーザー名
           </label>
-          <div className="w-full px-4 py-3 bg-harbor-900 border border-harbor-700 rounded-xl text-harbor-500 text-sm">
+          <div
+            className="w-full"
+            style={{
+              padding: '11px 13px',
+              background: 'transparent',
+              border: `1px solid ${C.rule}`,
+              color: C.mute,
+              fontSize: 14,
+              borderRadius: 0,
+            }}
+          >
             @{profile?.username ?? '—'}
           </div>
+          <p style={{ fontSize: 10, color: C.mute, marginTop: 4, letterSpacing: '0.04em' }}>
+            変更不可
+          </p>
         </div>
 
-        {/* 表示名 */}
         <div>
-          <label className="block text-harbor-300 text-xs font-medium mb-1.5">
+          <label style={labelStyle}>
             表示名
           </label>
           <input
@@ -137,15 +216,21 @@ export default function ProfileEditPage() {
             value={displayName}
             onChange={e => setDisplayName(e.target.value)}
             maxLength={40}
-            placeholder="表示名（省略するとユーザー名が使用されます）"
-            className="w-full px-4 py-3 bg-harbor-900 border border-harbor-700 rounded-xl text-harbor-100 text-sm placeholder-harbor-600 focus:outline-none focus:border-kobe-gold transition-colors"
+            placeholder="省略するとユーザー名が使われる"
+            style={inputStyle}
           />
-          <p className="text-harbor-600 text-xs mt-1 text-right">{displayName.length}/40</p>
+          <p
+            style={{
+              fontSize: 10, color: C.mute, marginTop: 4, textAlign: 'right',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {displayName.length}/40
+          </p>
         </div>
 
-        {/* 自己紹介 */}
         <div>
-          <label className="block text-harbor-300 text-xs font-medium mb-1.5">
+          <label style={labelStyle}>
             自己紹介
           </label>
           <textarea
@@ -153,101 +238,139 @@ export default function ProfileEditPage() {
             onChange={e => setBio(e.target.value)}
             maxLength={160}
             rows={3}
-            placeholder="神戸の立ち飲みを愛するひとこと..."
-            className="w-full px-4 py-3 bg-harbor-900 border border-harbor-700 rounded-xl text-harbor-100 text-sm placeholder-harbor-600 focus:outline-none focus:border-kobe-gold transition-colors resize-none"
+            placeholder="神戸の立ち飲みを愛するひとこと"
+            style={{ ...inputStyle, resize: 'none' }}
           />
-          <p className="text-harbor-600 text-xs mt-1 text-right">{bio.length}/160</p>
+          <p
+            style={{
+              fontSize: 10, color: C.mute, marginTop: 4, textAlign: 'right',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {bio.length}/160
+          </p>
         </div>
 
-        {/* エリア好み */}
         <div>
-          <label className="block text-harbor-300 text-xs font-medium mb-1.5">
+          <label style={labelStyle}>
             よく行くエリア
           </label>
           <div className="flex gap-2 flex-wrap">
-            {AREA_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setAreaPreference(opt.value)}
-                className={`text-xs px-3 py-2 rounded-full border transition-colors ${
-                  areaPreference === opt.value
-                    ? 'bg-kobe-gold text-harbor-950 border-kobe-gold font-bold'
-                    : 'bg-harbor-900 border-harbor-700 text-harbor-400 hover:border-harbor-500'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+            {AREA_OPTIONS.map(opt => {
+              const on = areaPreference === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setAreaPreference(opt.value)}
+                  style={{
+                    fontSize: 12, padding: '7px 13px',
+                    background: on ? C.ink : 'transparent',
+                    color: on ? C.inkOnPaper : C.ink,
+                    border: `1px solid ${C.ink}`,
+                    fontWeight: 700,
+                    borderRadius: 0,
+                    letterSpacing: '0.04em',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* プライバシー設定 */}
-        <div className="bg-harbor-900 border border-harbor-800 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-harbor-800">
-            <p className="text-harbor-300 text-sm font-semibold">プライバシー設定</p>
-            <p className="text-harbor-600 text-xs mt-0.5">他のユーザーに公開する情報を選択</p>
+        <div
+          style={{
+            background: C.surface,
+            border: `1px solid ${C.ink}`,
+            borderRadius: 0,
+          }}
+        >
+          <div
+            className="px-4 py-3"
+            style={{ borderBottom: `1px solid ${C.rule}` }}
+          >
+            <p
+              style={{
+                color: C.mute, fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+              }}
+            >
+              公開設定
+            </p>
           </div>
 
-          {/* お気に入り公開 */}
-          <button
-            onClick={() => setFavoritesPublic(v => !v)}
-            className="w-full flex items-center justify-between px-4 py-4 hover:bg-harbor-800/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-lg">❤️</span>
-              <div className="text-left">
-                <p className="text-harbor-200 text-sm font-medium">お気に入りを公開</p>
-                <p className="text-harbor-500 text-xs mt-0.5">
-                  {favoritesPublic ? 'プロフィールに表示されます' : '自分だけ見えます'}
-                </p>
+          {([
+            { state: favoritesPublic, set: setFavoritesPublic, icon: '❤', label: 'お気に入りを公開' },
+            { state: visitsPublic, set: setVisitsPublic, icon: '🍺', label: '訪問履歴を公開' },
+          ] as const).map((row, i) => (
+            <button
+              key={row.label}
+              onClick={() => row.set(v => !v)}
+              className="w-full flex items-center justify-between px-4 py-4"
+              style={{
+                borderTop: i === 0 ? 'none' : `1px solid ${C.rule}`,
+                background: 'transparent',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span style={{ fontSize: 16 }}>{row.icon}</span>
+                <div className="text-left">
+                  <p style={{ color: C.ink, fontSize: 13, fontWeight: 700 }}>{row.label}</p>
+                  <p
+                    style={{
+                      color: C.mute, fontSize: 11, marginTop: 2, lineHeight: 1.5,
+                    }}
+                  >
+                    {row.state ? 'プロフィールに表示' : '自分だけが見られる'}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border ${
-              favoritesPublic
-                ? 'bg-kobe-gold/10 border-kobe-gold/40 text-kobe-gold'
-                : 'bg-harbor-800 border-harbor-700 text-harbor-500'
-            }`}>
-              {favoritesPublic ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-              {favoritesPublic ? '公開' : '非公開'}
-            </div>
-          </button>
-
-          {/* 訪問履歴公開 */}
-          <button
-            onClick={() => setVisitsPublic(v => !v)}
-            className="w-full flex items-center justify-between px-4 py-4 border-t border-harbor-800 hover:bg-harbor-800/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-lg">🍺</span>
-              <div className="text-left">
-                <p className="text-harbor-200 text-sm font-medium">訪問履歴を公開</p>
-                <p className="text-harbor-500 text-xs mt-0.5">
-                  {visitsPublic ? 'プロフィールに表示されます' : '自分だけ見えます'}
-                </p>
+              <div
+                className="flex items-center gap-1.5"
+                style={{
+                  fontSize: 10, padding: '5px 10px',
+                  background: row.state ? C.ink : 'transparent',
+                  color: row.state ? C.inkOnPaper : C.mute,
+                  border: `1px solid ${row.state ? C.ink : C.rule}`,
+                  fontWeight: 700,
+                  borderRadius: 0,
+                  letterSpacing: '0.12em',
+                  lineHeight: 1,
+                }}
+              >
+                {row.state ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                {row.state ? '公開' : '非公開'}
               </div>
-            </div>
-            <div className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border ${
-              visitsPublic
-                ? 'bg-kobe-gold/10 border-kobe-gold/40 text-kobe-gold'
-                : 'bg-harbor-800 border-harbor-700 text-harbor-500'
-            }`}>
-              {visitsPublic ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-              {visitsPublic ? '公開' : '非公開'}
-            </div>
-          </button>
+            </button>
+          ))}
         </div>
 
         {error && (
-          <p className="text-kobe-red text-sm text-center px-4 py-3 bg-kobe-red/10 border border-kobe-red/30 rounded-xl">
+          <p
+            className="text-center px-4 py-3"
+            style={{
+              color: C.accent,
+              border: `1px solid ${C.accent}`,
+              borderRadius: 0,
+              fontSize: 12,
+            }}
+          >
             {error}
           </p>
         )}
 
-        {/* プロフィールページへ */}
         {user && (
           <Link
             href={`/users/${user.id}`}
-            className="block text-center text-harbor-500 text-xs hover:text-harbor-300 transition-colors"
+            className="block text-center"
+            style={{
+              color: C.mute, fontSize: 11,
+              letterSpacing: '0.08em',
+            }}
           >
             プロフィールを確認する →
           </Link>

@@ -5,6 +5,11 @@ interface QuickStartButtonsProps {
   language: string;
 }
 
+const INK  = '#262220';
+const MUTE = '#857E78';
+const RULE = '#D5CBBE';
+const PAPER_LIGHT = '#FAF4E6';
+
 const prompts: Record<string, Array<{ label: string; message: string; emoji: string }>> = {
   ja: [
     { emoji: '🍺', label: '一人で気軽に飲みたい', message: '三宮で一人でも入りやすい立ち飲み屋を教えてください。' },
@@ -52,20 +57,40 @@ export default function QuickStartButtons({ onSelect, language }: QuickStartButt
 
   return (
     <div className="w-full">
-      <p className="text-harbor-400 text-xs text-center mb-3 flex items-center justify-center gap-2">
-        <span className="inline-block w-8 h-px bg-harbor-300" />
+      <p
+        className="flex items-center justify-center gap-3 mb-3"
+        style={{
+          fontSize: 10,
+          color: MUTE,
+          letterSpacing: '0.24em',
+        }}
+      >
+        <span className="inline-block" style={{ width: 24, height: 1, background: RULE }} />
         よく聞かれること
-        <span className="inline-block w-8 h-px bg-harbor-300" />
+        <span className="inline-block" style={{ width: 24, height: 1, background: RULE }} />
       </p>
       <div className="grid grid-cols-2 gap-2">
         {currentPrompts.map((p, i) => (
           <button
             key={i}
             onClick={() => onSelect(p.message)}
-            className="flex items-center gap-2 px-3 py-3 bg-white hover:bg-harbor-100 border border-harbor-200 hover:border-kobe-gold/50 rounded-xl text-left transition-all duration-150 group active:scale-[0.97] shadow-card"
+            className="flex items-center gap-2 px-3 py-3 text-left"
+            style={{
+              background: PAPER_LIGHT,
+              border: `1px solid ${INK}`,
+              borderRadius: 0,
+            }}
           >
-            <span className="text-lg flex-shrink-0">{p.emoji}</span>
-            <span className="text-harbor-600 group-hover:text-harbor-800 text-xs font-medium leading-snug transition-colors">
+            <span style={{ fontSize: 16, flexShrink: 0 }}>{p.emoji}</span>
+            <span
+              style={{
+                color: INK,
+                fontSize: 12,
+                fontWeight: 600,
+                lineHeight: 1.45,
+                letterSpacing: '-0.005em',
+              }}
+            >
               {p.label}
             </span>
           </button>

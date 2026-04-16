@@ -34,6 +34,17 @@ interface Props {
 
 type Tab = 'favorites' | 'visits' | 'followers' | 'following';
 
+const C = {
+  paper:      '#F3ECDD',
+  surface:    '#FAF4E6',
+  ink:        '#262220',
+  inkSoft:    '#3D3832',
+  mute:       '#857E78',
+  rule:       '#D5CBBE',
+  accent:     '#B94A3B',
+  inkOnPaper: '#FAF4E6',
+};
+
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: 'favorites', label: 'お気に入り', icon: Heart },
   { id: 'visits',    label: '訪問履歴',   icon: MapPin },
@@ -57,39 +68,52 @@ function getRestaurant(r: Restaurant | Restaurant[] | null): Restaurant | null {
 export default function ProfileTabs({ profile, favorites, visits, isOwn }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('favorites');
 
+  const itemLinkStyle: React.CSSProperties = {
+    background: C.surface,
+    border: `1px solid ${C.ink}`,
+    borderRadius: 0,
+  };
+
   return (
     <div>
-      {/* Tab bar */}
-      <div className="flex border-b border-harbor-800 px-2">
-        {TABS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`flex-1 flex flex-col items-center py-3 gap-0.5 text-[11px] font-medium transition-colors border-b-2 -mb-px ${
-              activeTab === id
-                ? 'border-kobe-gold text-kobe-gold'
-                : 'border-transparent text-harbor-500 hover:text-harbor-300'
-            }`}
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-          </button>
-        ))}
+      <div
+        className="flex px-2"
+        style={{ borderBottom: `1px solid ${C.ink}` }}
+      >
+        {TABS.map(({ id, label, icon: Icon }) => {
+          const on = activeTab === id;
+          return (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className="flex-1 flex flex-col items-center py-3 gap-1"
+              style={{
+                fontSize: 10,
+                fontWeight: on ? 700 : 600,
+                color: on ? C.ink : C.mute,
+                letterSpacing: on ? '0.12em' : '0.04em',
+                borderBottom: on ? `2px solid ${C.ink}` : '2px solid transparent',
+                marginBottom: -1,
+              }}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Tab content */}
       <div className="p-4">
-        {/* Favorites */}
         {activeTab === 'favorites' && (
           <div>
             {favorites === null ? (
-              <p className="text-center text-harbor-500 text-sm py-8">非公開です</p>
+              <p className="text-center py-8" style={{ color: C.mute, fontSize: 13 }}>非公開</p>
             ) : favorites.length === 0 ? (
-              <p className="text-center text-harbor-500 text-sm py-8">
-                {isOwn ? 'まだお気に入りがありません' : 'お気に入りがありません'}
+              <p className="text-center py-8" style={{ color: C.mute, fontSize: 13 }}>
+                {isOwn ? 'まだお気に入りがない' : 'お気に入りがない'}
               </p>
             ) : (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {favorites.map((fav) => {
                   const r = getRestaurant(fav.restaurant);
                   if (!r) return null;
@@ -97,12 +121,28 @@ export default function ProfileTabs({ profile, favorites, visits, isOwn }: Props
                     <Link
                       key={fav.restaurant_id}
                       href={`/stores/${fav.restaurant_id}`}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-harbor-900 hover:bg-harbor-800 border border-harbor-800 transition-colors"
+                      className="flex items-center gap-3 p-3"
+                      style={itemLinkStyle}
                     >
-                      <Heart className="w-4 h-4 text-kobe-red flex-shrink-0" />
+                      <Heart
+                        className="w-4 h-4 flex-shrink-0"
+                        style={{ color: C.accent, fill: C.accent }}
+                      />
                       <div className="flex-1 min-w-0">
-                        <p className="text-harbor-100 text-sm font-medium truncate">{r.name}</p>
-                        <p className="text-harbor-500 text-xs">{AREA_LABELS[r.area] ?? r.area}</p>
+                        <p
+                          className="truncate"
+                          style={{ color: C.ink, fontSize: 13, fontWeight: 700 }}
+                        >
+                          {r.name}
+                        </p>
+                        <p
+                          style={{
+                            color: C.mute, fontSize: 11, marginTop: 2,
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          {AREA_LABELS[r.area] ?? r.area}
+                        </p>
                       </div>
                     </Link>
                   );
@@ -112,17 +152,16 @@ export default function ProfileTabs({ profile, favorites, visits, isOwn }: Props
           </div>
         )}
 
-        {/* Visits */}
         {activeTab === 'visits' && (
           <div>
             {visits === null ? (
-              <p className="text-center text-harbor-500 text-sm py-8">非公開です</p>
+              <p className="text-center py-8" style={{ color: C.mute, fontSize: 13 }}>非公開</p>
             ) : visits.length === 0 ? (
-              <p className="text-center text-harbor-500 text-sm py-8">
-                {isOwn ? 'まだ訪問記録がありません' : '訪問履歴がありません'}
+              <p className="text-center py-8" style={{ color: C.mute, fontSize: 13 }}>
+                {isOwn ? 'まだ訪問記録がない' : '訪問履歴がない'}
               </p>
             ) : (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {visits.map((visit) => {
                   const r = getRestaurant(visit.restaurant);
                   if (!r) return null;
@@ -130,15 +169,34 @@ export default function ProfileTabs({ profile, favorites, visits, isOwn }: Props
                     <Link
                       key={visit.id}
                       href={`/stores/${r.id}`}
-                      className="flex items-start gap-3 p-3 rounded-lg bg-harbor-900 hover:bg-harbor-800 border border-harbor-800 transition-colors"
+                      className="flex items-start gap-3 p-3"
+                      style={itemLinkStyle}
                     >
-                      <MapPin className="w-4 h-4 text-kobe-gold flex-shrink-0 mt-0.5" />
+                      <MapPin
+                        className="w-4 h-4 flex-shrink-0"
+                        style={{ color: C.ink, marginTop: 2 }}
+                      />
                       <div className="flex-1 min-w-0">
-                        <p className="text-harbor-100 text-sm font-medium truncate">{r.name}</p>
+                        <p
+                          className="truncate"
+                          style={{ color: C.ink, fontSize: 13, fontWeight: 700 }}
+                        >
+                          {r.name}
+                        </p>
                         {visit.note && (
-                          <p className="text-harbor-400 text-xs mt-0.5 line-clamp-2">{visit.note}</p>
+                          <p
+                            className="line-clamp-2"
+                            style={{ color: C.inkSoft, fontSize: 11, marginTop: 4, lineHeight: 1.6 }}
+                          >
+                            {visit.note}
+                          </p>
                         )}
-                        <p className="text-harbor-600 text-[11px] mt-1">
+                        <p
+                          style={{
+                            color: C.mute, fontSize: 10, marginTop: 6,
+                            letterSpacing: '0.12em',
+                          }}
+                        >
                           {new Date(visit.visited_at).toLocaleDateString('ja-JP', {
                             year: 'numeric', month: 'short', day: 'numeric',
                           })}
@@ -152,14 +210,22 @@ export default function ProfileTabs({ profile, favorites, visits, isOwn }: Props
           </div>
         )}
 
-        {/* Followers / Following — redirect to dedicated pages */}
         {(activeTab === 'followers' || activeTab === 'following') && (
           <div className="text-center py-8">
             <Link
               href={`/users/${profile.id}/${activeTab}`}
-              className="px-6 py-2.5 rounded-full bg-kobe-gold text-harbor-950 font-semibold text-sm"
+              style={{
+                padding: '10px 20px',
+                background: C.ink,
+                color: C.inkOnPaper,
+                fontWeight: 700,
+                fontSize: 12,
+                borderRadius: 0,
+                letterSpacing: '0.08em',
+                lineHeight: 1,
+              }}
             >
-              {activeTab === 'followers' ? 'フォロワー一覧を見る' : 'フォロー中一覧を見る'}
+              {activeTab === 'followers' ? 'フォロワー一覧' : 'フォロー中一覧'}
             </Link>
           </div>
         )}

@@ -58,6 +58,21 @@ const BUDGET_OPTIONS = [
 
 type ViewMode = 'list' | 'split';
 
+// ── 生成り×墨パレット（トップと統一）──────────────────────
+const C = {
+  bg:        '#F3ECDD',  // 生成り（paper）
+  surface:   '#FAF4E6',  // 薄生成り（paper-light）
+  border:    '#262220',  // 墨（ink）
+  borderSub: '#D5CBBE',  // 内部の細罫
+  textMain:  '#262220',
+  textBody:  '#3D3832',
+  textSub:   '#5C5752',
+  textMute:  '#857E78',
+  inkFill:   '#262220',
+  inkOnPaper:'#FAF4E6',
+  green:     '#2E7D5B',
+};
+
 // ── ページコンポーネント ─────────────────────────────────────
 export default function StoresPage() {
   const [area,          setArea]          = useState('');
@@ -77,7 +92,6 @@ export default function StoresPage() {
   const listRef     = useRef<HTMLDivElement>(null);
   const cardRefs    = useRef<Record<string, HTMLDivElement>>({});
 
-  // キーワード debounce
   useEffect(() => {
     const t = setTimeout(() => setDebKeyword(keyword), 380);
     return () => clearTimeout(t);
@@ -107,7 +121,6 @@ export default function StoresPage() {
 
   useEffect(() => { fetchStores(); }, [fetchStores]);
 
-  // 距離計算
   const distances = useMemo<Record<string, number>>(() => {
     if (!location) return {};
     return Object.fromEntries(
@@ -117,7 +130,6 @@ export default function StoresPage() {
     );
   }, [location, stores]);
 
-  // 現在地ソート済みリスト
   const sortedStores = useMemo(() => {
     if (!location || Object.keys(distances).length === 0) return stores;
     return [...stores].sort((a, b) => {
@@ -127,7 +139,6 @@ export default function StoresPage() {
     });
   }, [stores, distances, location]);
 
-  // 選択時: リストの対応カードにスクロール
   const handleSelect = useCallback((id: string) => {
     setSelectedId(id);
     const el = cardRefs.current[id];
@@ -144,37 +155,55 @@ export default function StoresPage() {
     setShowBudget(false);
   };
 
+  // ── スタイル helpers ────────────────────────────────────────
+  const pillBase: React.CSSProperties = {
+    background: 'transparent',
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: C.border,
+    color: C.textBody,
+    fontSize: 12, fontWeight: 600,
+    padding: '5px 12px',
+    borderRadius: 0,
+    whiteSpace: 'nowrap',
+    transition: 'background 0.15s, color 0.15s',
+    letterSpacing: '0.02em',
+  };
+  const pillActive: React.CSSProperties = {
+    background: C.inkFill,
+    borderColor: C.inkFill,
+    color: C.inkOnPaper,
+  };
+
   return (
     <main
-      className="ln-page flex flex-col overflow-hidden"
-      style={{ height: '100dvh', paddingBottom: 56 }}
+      className="flex flex-col overflow-hidden"
+      style={{ height: '100dvh', paddingBottom: 56, background: C.bg, color: C.textMain }}
     >
 
       {/* ── ヘッダー ─────────────────────────────────────────── */}
       <header
         className="flex-shrink-0 flex items-center justify-between px-4"
         style={{
-          height: 52, flexShrink: 0,
-          background: '#0f1011',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          height: 52,
+          background: C.surface,
+          borderBottom: `1px solid ${C.border}`,
         }}
       >
-        <span
-          style={{
-            fontSize: 15, fontWeight: 590, color: '#f7f8f8',
-            letterSpacing: '-0.165px',
-          }}
-        >
+        <span style={{ fontSize: 15, fontWeight: 700, color: C.textMain, letterSpacing: '-0.165px' }}>
           神戸立ち飲みマップ
         </span>
         <div className="flex items-center gap-2">
           {/* 現在地ボタン */}
           <button
             onClick={requestLocation}
-            className="flex items-center justify-center ln-btn-ghost"
+            className="flex items-center justify-center"
             style={{
               width: 32, height: 32, padding: 0,
-              color: location ? '#27a644' : locLoading ? '#7170ff' : '#62666d',
+              borderRadius: 0,
+              background: location ? C.inkFill : 'transparent',
+              border: `1px solid ${C.border}`,
+              color: location ? C.inkOnPaper : C.textSub,
             }}
             title="現在地を取得"
           >
@@ -188,9 +217,9 @@ export default function StoresPage() {
           <div
             className="flex items-center"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 7,
+              background: 'transparent',
+              border: `1px solid ${C.border}`,
+              borderRadius: 0,
               overflow: 'hidden',
             }}
           >
@@ -199,8 +228,8 @@ export default function StoresPage() {
               className="flex items-center justify-center"
               style={{
                 width: 30, height: 26, fontSize: 12,
-                color: viewMode === 'list' ? '#f7f8f8' : '#62666d',
-                background: viewMode === 'list' ? 'rgba(255,255,255,0.08)' : 'transparent',
+                color: viewMode === 'list' ? C.inkOnPaper : C.textMute,
+                background: viewMode === 'list' ? C.inkFill : 'transparent',
               }}
             >
               <List style={{ width: 13, height: 13 }} />
@@ -210,8 +239,8 @@ export default function StoresPage() {
               className="flex items-center justify-center"
               style={{
                 width: 30, height: 26, fontSize: 12,
-                color: viewMode === 'split' ? '#f7f8f8' : '#62666d',
-                background: viewMode === 'split' ? 'rgba(255,255,255,0.08)' : 'transparent',
+                color: viewMode === 'split' ? C.inkOnPaper : C.textMute,
+                background: viewMode === 'split' ? C.inkFill : 'transparent',
               }}
             >
               <Map style={{ width: 13, height: 13 }} />
@@ -222,10 +251,11 @@ export default function StoresPage() {
             <Link
               href="/map"
               style={{
-                fontSize: 12, fontWeight: 510, color: '#7170ff',
-                background: 'rgba(94,106,210,0.12)',
-                border: '1px solid rgba(113,112,255,0.25)',
-                borderRadius: 6, padding: '4px 10px',
+                fontSize: 12, fontWeight: 700, color: C.textMain,
+                background: 'transparent',
+                border: `1px solid ${C.border}`,
+                borderRadius: 0, padding: '4px 10px',
+                letterSpacing: '0.02em',
               }}
             >
               🍺 {courseCount}店
@@ -237,27 +267,27 @@ export default function StoresPage() {
       {/* ── 検索バー ─────────────────────────────────────────── */}
       <div
         className="flex-shrink-0 px-3 py-2.5"
-        style={{ background: '#0f1011', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+        style={{ background: C.surface, borderBottom: `1px solid ${C.border}` }}
       >
         <div className="relative">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ width: 14, height: 14, color: '#62666d' }}
+            style={{ width: 14, height: 14, color: C.textMute }}
           />
           <input
             ref={searchRef}
             type="text"
             value={keyword}
             onChange={e => setKeyword(e.target.value)}
-            placeholder="店名・エリア・ジャンルで検索..."
+            placeholder="店名で検索..."
             style={{
               width: '100%',
               paddingLeft: 36, paddingRight: keyword ? 32 : 12,
               paddingTop: 8, paddingBottom: 8,
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 8,
-              color: '#f7f8f8',
+              background: C.bg,
+              border: `1px solid ${C.border}`,
+              borderRadius: 0,
+              color: C.textMain,
               fontSize: 14,
               fontWeight: 400,
               outline: 'none',
@@ -267,7 +297,7 @@ export default function StoresPage() {
             <button
               onClick={() => { setKeyword(''); setDebKeyword(''); searchRef.current?.focus(); }}
               className="absolute right-3 top-1/2 -translate-y-1/2"
-              style={{ color: '#62666d' }}
+              style={{ color: C.textMute }}
             >
               <X style={{ width: 14, height: 14 }} />
             </button>
@@ -278,7 +308,7 @@ export default function StoresPage() {
       {/* ── フィルターバー ──────────────────────────────────── */}
       <div
         className="flex-shrink-0"
-        style={{ background: '#0f1011', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+        style={{ background: C.surface, borderBottom: `1px solid ${C.border}` }}
       >
         {/* エリア + 予算 */}
         <div className="flex items-center gap-2 px-3 pt-2.5 pb-2">
@@ -286,12 +316,7 @@ export default function StoresPage() {
             <button
               key={a.value}
               onClick={() => setArea(a.value)}
-              className="ln-pill"
-              style={area === a.value ? {
-                background: 'rgba(94,106,210,0.15)',
-                borderColor: '#5e6ad2',
-                color: '#828fff',
-              } : undefined}
+              style={area === a.value ? { ...pillBase, ...pillActive } : pillBase}
             >
               {a.label}
             </button>
@@ -299,12 +324,8 @@ export default function StoresPage() {
           <div style={{ flex: 1 }} />
           <button
             onClick={() => setShowBudget(v => !v)}
-            className="flex items-center gap-1 ln-pill"
-            style={showBudget || budgetMax ? {
-              background: 'rgba(94,106,210,0.15)',
-              borderColor: '#5e6ad2',
-              color: '#828fff',
-            } : undefined}
+            className="flex items-center gap-1"
+            style={showBudget || budgetMax ? { ...pillBase, ...pillActive } : pillBase}
           >
             <SlidersHorizontal style={{ width: 11, height: 11 }} />
             予算
@@ -315,21 +336,16 @@ export default function StoresPage() {
         {showBudget && (
           <div
             className="flex items-center gap-2 px-3 pb-2.5"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}
+            style={{ borderTop: `1px solid ${C.borderSub}`, paddingTop: 10 }}
           >
-            <span style={{ fontSize: 11, color: '#62666d', fontWeight: 510, flexShrink: 0 }}>
+            <span style={{ fontSize: 11, color: C.textMute, fontWeight: 510, flexShrink: 0 }}>
               上限
             </span>
             {BUDGET_OPTIONS.map(b => (
               <button
                 key={b.max}
                 onClick={() => setBudgetMax(b.max)}
-                className="ln-pill"
-                style={budgetMax === b.max ? {
-                  background: 'rgba(94,106,210,0.15)',
-                  borderColor: '#5e6ad2',
-                  color: '#828fff',
-                } : undefined}
+                style={budgetMax === b.max ? { ...pillBase, ...pillActive } : pillBase}
               >
                 {b.label}
               </button>
@@ -346,12 +362,8 @@ export default function StoresPage() {
             <button
               key={f.id}
               onClick={() => setActiveFilter(f.id === activeFilter ? 'all' : f.id)}
-              className="ln-pill flex items-center gap-1.5 flex-shrink-0"
-              style={activeFilter === f.id ? {
-                background: 'rgba(94,106,210,0.15)',
-                borderColor: '#5e6ad2',
-                color: '#828fff',
-              } : undefined}
+              className="flex items-center gap-1.5 flex-shrink-0"
+              style={activeFilter === f.id ? { ...pillBase, ...pillActive } : pillBase}
             >
               <span style={{ fontSize: 13, lineHeight: 1 }}>{f.emoji}</span>
               {f.label}
@@ -363,15 +375,15 @@ export default function StoresPage() {
       {/* ── 件数 + リセット + ソート表示 ──────────────────────── */}
       <div
         className="flex-shrink-0 flex items-center justify-between px-4 py-2"
-        style={{ background: '#0f1011', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+        style={{ background: C.bg, borderBottom: `1px solid ${C.borderSub}` }}
       >
-        <span style={{ fontSize: 12, color: '#62666d', fontWeight: 400 }}>
+        <span style={{ fontSize: 12, color: C.textMute, fontWeight: 400 }}>
           {isLoading ? '...' : (
             <>
-              <span style={{ color: '#d0d6e0', fontWeight: 510 }}>{total}</span>
+              <span style={{ color: C.textMain, fontWeight: 600 }}>{total}</span>
               {' 店舗'}
               {location && (
-                <span style={{ color: '#27a644', marginLeft: 6 }}>· 近い順</span>
+                <span style={{ color: C.green, marginLeft: 6 }}>· 近い順</span>
               )}
             </>
           )}
@@ -380,7 +392,7 @@ export default function StoresPage() {
           <button
             onClick={resetAll}
             className="flex items-center gap-1"
-            style={{ fontSize: 12, color: '#62666d', fontWeight: 510 }}
+            style={{ fontSize: 12, color: C.textSub, fontWeight: 510 }}
           >
             <X style={{ width: 11, height: 11 }} />
             リセット
@@ -389,10 +401,9 @@ export default function StoresPage() {
       </div>
 
       {/* ── コンテンツ エリア ────────────────────────────────── */}
-      <div className="flex-1 overflow-hidden flex flex-col" style={{ background: '#0f1011' }}>
+      <div className="flex-1 overflow-hidden flex flex-col" style={{ background: C.bg }}>
 
         {viewMode === 'split' && (
-          /* 地図パネル (上半分) */
           <div className="flex-shrink-0" style={{ height: '42%', minHeight: 200 }}>
             <StoreMapPanel
               stores={sortedStores}
@@ -403,21 +414,23 @@ export default function StoresPage() {
           </div>
         )}
 
-        {/* 店舗リスト */}
         <div
           ref={listRef}
           className="flex-1 overflow-y-auto"
-          style={{ background: '#0f1011' }}
+          style={{ background: C.bg }}
         >
           {isLoading ? (
-            <div className="flex items-center justify-center py-24">
-              <div
-                className="w-6 h-6 rounded-full animate-spin"
-                style={{
-                  border: '2px solid rgba(255,255,255,0.08)',
-                  borderTopColor: '#7170ff',
-                }}
+            <div className="flex items-center justify-center py-24 gap-2">
+              <span
+                className="inline-block h-px w-10 animate-pulse"
+                style={{ background: C.inkFill }}
               />
+              <span
+                className="text-[11px] tracking-[0.1em]"
+                style={{ color: C.textMute }}
+              >
+                読み込み中
+              </span>
             </div>
           ) : (
             <StoreList

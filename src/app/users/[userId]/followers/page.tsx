@@ -4,6 +4,10 @@ import UserCard from '@/components/social/UserCard';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
+const PAPER = '#F3ECDD';
+const INK   = '#262220';
+const MUTE  = '#857E78';
+
 interface Props {
   params: Promise<{ userId: string }>;
 }
@@ -38,23 +42,51 @@ export default async function FollowersPage({ params }: Props) {
   }));
 
   return (
-    <div className="min-h-screen bg-harbor-950 max-w-lg mx-auto pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-harbor-950/95 backdrop-blur-sm border-b border-harbor-800 px-4 py-3 flex items-center gap-3">
-        <Link href={`/users/${userId}`} className="text-harbor-400 hover:text-harbor-200 transition-colors">
-          <ArrowLeft className="w-5 h-5" />
+    <div className="min-h-screen max-w-lg mx-auto pb-24" style={{ background: PAPER }}>
+      <div
+        className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
+        style={{
+          background: PAPER,
+          borderBottom: `1px solid ${INK}`,
+        }}
+      >
+        <Link
+          href={`/users/${userId}`}
+          className="flex items-center justify-center"
+          style={{
+            width: 32, height: 32,
+            border: `1px solid ${INK}`,
+            color: INK,
+            borderRadius: 0,
+          }}
+        >
+          <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="text-harbor-100 font-semibold text-sm">
+          <h1
+            style={{
+              color: INK, fontWeight: 700, fontSize: 14,
+              letterSpacing: '-0.01em', lineHeight: 1.3,
+            }}
+          >
             {profile.display_name ?? profile.username}
           </h1>
-          <p className="text-harbor-500 text-xs">フォロワー {followers.length}人</p>
+          <p
+            style={{
+              color: MUTE, fontSize: 10, marginTop: 2,
+              letterSpacing: '0.12em',
+            }}
+          >
+            フォロワー {followers.length}
+          </p>
         </div>
       </div>
 
-      <div className="p-4 space-y-2">
+      <div className="p-4 flex flex-col gap-2">
         {followers.length === 0 ? (
-          <p className="text-center text-harbor-500 text-sm py-12">まだフォロワーがいません</p>
+          <p className="text-center py-12" style={{ color: MUTE, fontSize: 13 }}>
+            まだフォロワーがいない
+          </p>
         ) : (
           followers.map(({ id, profile: p }) =>
             p ? <UserCard key={id} profile={p} /> : null,

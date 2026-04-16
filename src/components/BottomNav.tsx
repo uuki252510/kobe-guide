@@ -9,6 +9,11 @@ interface Props {
   courseCount?: number;
 }
 
+const INK        = '#262220';
+const PAPER      = '#F3ECDD';
+const INACTIVE   = '#857E78';
+const INK_ON_PAPER = '#FAF4E6';
+
 export default function BottomNav({ courseCount = 0 }: Props) {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -26,14 +31,11 @@ export default function BottomNav({ courseCount = 0 }: Props) {
   ];
 
   return (
-    /* Linear glass nav — near-black + blur */
     <nav
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{
-        background: 'rgba(15,16,17,0.95)',
-        backdropFilter: 'saturate(180%) blur(16px)',
-        WebkitBackdropFilter: 'saturate(180%) blur(16px)',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        background: PAPER,
+        borderTop: `1px solid ${INK}`,
       }}
     >
       <div className="max-w-2xl mx-auto flex">
@@ -44,15 +46,22 @@ export default function BottomNav({ courseCount = 0 }: Props) {
             <Link
               key={href}
               href={href}
-              className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 relative transition-colors"
-              style={{ color: active ? '#7170ff' : '#62666d' }}
+              className="flex-1 flex flex-col items-center justify-center py-2.5 gap-1 relative"
+              style={{ color: active ? INK : INACTIVE }}
             >
               <div className="relative">
-                <Icon className="w-5 h-5" />
+                <Icon className="w-5 h-5" strokeWidth={active ? 2.25 : 1.75} />
                 {isMap && courseCount > 0 && (
                   <span
-                    className="absolute -top-1.5 -right-2 text-white text-[9px] font-medium w-4 h-4 flex items-center justify-center rounded-full leading-none"
-                    style={{ background: '#5e6ad2', fontWeight: 510 }}
+                    className="absolute -top-1.5 -right-2 flex items-center justify-center font-bold"
+                    style={{
+                      background: INK,
+                      color: INK_ON_PAPER,
+                      fontSize: 9,
+                      width: 15, height: 15,
+                      borderRadius: 0,
+                      lineHeight: 1,
+                    }}
                   >
                     {courseCount > 9 ? '9+' : courseCount}
                   </span>
@@ -60,13 +69,21 @@ export default function BottomNav({ courseCount = 0 }: Props) {
               </div>
               <span
                 style={{
-                  fontSize: 10, fontWeight: active ? 510 : 400,
-                  letterSpacing: '-0.08px', lineHeight: 1,
-                  color: active ? '#7170ff' : '#62666d',
+                  fontSize: 10,
+                  fontWeight: active ? 700 : 500,
+                  letterSpacing: active ? '0.08em' : '0.02em',
+                  lineHeight: 1,
+                  color: active ? INK : INACTIVE,
                 }}
               >
                 {label}
               </span>
+              {active && (
+                <span
+                  className="absolute top-0 left-1/2 -translate-x-1/2"
+                  style={{ width: 20, height: 2, background: INK }}
+                />
+              )}
             </Link>
           );
         })}

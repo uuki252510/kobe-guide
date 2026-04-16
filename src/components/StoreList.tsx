@@ -2,27 +2,27 @@
 
 import type { MutableRefObject } from 'react';
 import Link from 'next/link';
-import { Navigation, Instagram, Star, MapPin, Heart, ExternalLink } from 'lucide-react';
+import { Instagram, Star, MapPin, Heart, ExternalLink } from 'lucide-react';
 import type { Restaurant } from '@/types/restaurant';
 import { useFavorites } from '@/hooks/useFavorites';
 import { formatDistance } from '@/hooks/useLocation';
 
-// ── type labels & colors ─────────────────────────────────────
 const TYPE_LABEL: Record<string, string> = {
   tachinomi: '立ち飲み', kakuuchi: '角打ち', yakitori: '焼鳥',
   seafood: '海鮮', wine: 'ワイン', italian: 'イタリアン',
   hormones: 'ホルモン', bar: 'バー',
 };
 
+// ライト版：淡い背景色 + 濃いめの文字色で可読性確保
 const TYPE_TINT: Record<string, { bg: string; text: string; border: string }> = {
-  kakuuchi:  { bg: 'rgba(139,92,246,0.12)', text: '#a78bfa', border: 'rgba(139,92,246,0.25)' },
-  wine:      { bg: 'rgba(236,72,153,0.10)', text: '#f472b6', border: 'rgba(236,72,153,0.25)' },
-  seafood:   { bg: 'rgba(59,130,246,0.10)', text: '#60a5fa', border: 'rgba(59,130,246,0.25)' },
-  yakitori:  { bg: 'rgba(245,158,11,0.10)', text: '#fbbf24', border: 'rgba(245,158,11,0.25)' },
-  bar:       { bg: 'rgba(148,163,184,0.08)', text: '#94a3b8', border: 'rgba(148,163,184,0.20)' },
-  italian:   { bg: 'rgba(34,197,94,0.10)',  text: '#4ade80', border: 'rgba(34,197,94,0.25)' },
-  hormones:  { bg: 'rgba(239,68,68,0.10)',  text: '#f87171', border: 'rgba(239,68,68,0.25)' },
-  tachinomi: { bg: 'rgba(251,191,36,0.10)', text: '#fcd34d', border: 'rgba(251,191,36,0.25)' },
+  kakuuchi:  { bg: '#F3EEFB', text: '#6D4AAF', border: '#DDD0F4' },
+  wine:      { bg: '#FBECF3', text: '#AD3D77', border: '#F4D0E1' },
+  seafood:   { bg: '#E9F1FB', text: '#2A63AE', border: '#CCDFF2' },
+  yakitori:  { bg: '#FBF2E0', text: '#9A6A18', border: '#F1DDB0' },
+  bar:       { bg: '#EFF2F5', text: '#4B5762', border: '#DDE2E8' },
+  italian:   { bg: '#E6F4EB', text: '#1F7A45', border: '#C6E5D2' },
+  hormones:  { bg: '#FBE9E9', text: '#B23333', border: '#F2C8C8' },
+  tachinomi: { bg: '#FFF4DA', text: '#8F6F1E', border: '#F3DFAA' },
 };
 
 const TYPE_EMOJI: Record<string, string> = {
@@ -35,7 +35,22 @@ const AREA_LABEL: Record<string, string> = {
   sannomiya: '三宮', motomachi: '元町', surroundings: '周辺',
 };
 
-// ── StoreCard ────────────────────────────────────────────────
+// ── 生成り×墨パレット ────────────────────────────────────
+const C = {
+  surface:   '#FAF4E6',  // paper-light
+  paper:     '#F3ECDD',  // paper
+  border:    '#262220',  // ink（主罫線）
+  borderSub: '#D5CBBE',  // 細罫
+  textMain:  '#262220',
+  textSub:   '#3D3832',
+  textMute:  '#857E78',
+  inkFill:   '#262220',
+  inkOnPaper:'#FAF4E6',
+  ratingStar:'#3D3832', // star fill — inkに寄せる
+  green:     '#2E7D5B',
+  pink:      '#B94A3B', // 朱色寄り
+};
+
 interface CardProps {
   store: Restaurant;
   distance?: number;
@@ -57,29 +72,29 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
   const areaStr   = AREA_LABEL[store.area] ?? store.area;
   const budgetStr = store.budget_max ? `〜¥${store.budget_max.toLocaleString()}` : null;
 
-  // Google Maps walking directions
   const navUrl = store.lat && store.lng
     ? `https://www.google.com/maps/dir/?api=1&destination=${store.lat},${store.lng}&travelmode=walking`
     : store.google_maps_url ?? null;
 
   return (
     <div
-      className="ln-card group overflow-hidden transition-all duration-150"
+      className="group overflow-hidden transition-colors duration-150"
       style={{
-        borderRadius: 10,
-        borderColor: selected ? 'rgba(94,106,210,0.5)' : undefined,
-        background: selected ? 'rgba(94,106,210,0.06)' : undefined,
+        borderRadius: 0,
+        background: selected ? C.paper : C.surface,
+        border: `1px solid ${C.border}`,
+        borderLeftWidth: selected ? 4 : 1,
       }}
       onClick={onSelect}
     >
-      {/* ── メイン行（タップで詳細） ── */}
+      {/* メイン行 */}
       <div className="flex gap-3 px-4 py-3.5">
 
         {/* サムネイル */}
         <Link
           href={`/stores/${store.id}`}
-          className="relative flex-shrink-0 rounded-lg overflow-hidden"
-          style={{ width: 68, height: 68, background: '#191a1b' }}
+          className="relative flex-shrink-0 overflow-hidden"
+          style={{ width: 72, height: 72, background: C.borderSub, borderRadius: 0 }}
         >
           {photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -92,18 +107,18 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
           ) : (
             <div
               className="w-full h-full flex items-center justify-center"
-              style={{ fontSize: 26, opacity: 0.3 }}
+              style={{ fontSize: 28, opacity: 0.5 }}
             >
               {emoji}
             </div>
           )}
           {store.is_new_open && (
             <span
-              className="absolute top-1 left-1 text-white font-medium"
+              className="absolute top-1 left-1 font-bold"
               style={{
-                fontSize: 9, background: '#10b981',
-                borderRadius: '50%', padding: '2px 5px',
-                lineHeight: 1.4, letterSpacing: '0.02em',
+                fontSize: 9, background: C.inkFill, color: C.inkOnPaper,
+                borderRadius: 0, padding: '2px 5px',
+                lineHeight: 1.4, letterSpacing: '0.1em',
               }}
             >
               NEW
@@ -114,16 +129,12 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
         {/* 店舗情報 */}
         <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
 
-          {/* 店名 + タイプバッジ */}
           <div className="flex items-start gap-2">
-            <Link
-              href={`/stores/${store.id}`}
-              className="flex-1 min-w-0"
-            >
+            <Link href={`/stores/${store.id}`} className="flex-1 min-w-0">
               <p
                 className="truncate"
                 style={{
-                  fontSize: 15, fontWeight: 510, color: '#f7f8f8',
+                  fontSize: 15, fontWeight: 700, color: C.textMain,
                   letterSpacing: '-0.165px', lineHeight: 1.4,
                 }}
               >
@@ -133,39 +144,38 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
             <span
               className="flex-shrink-0"
               style={{
-                fontSize: 11, fontWeight: 510,
-                padding: '2px 8px', borderRadius: 9999,
-                background: tint.bg, color: tint.text,
-                border: `1px solid ${tint.border}`,
-                lineHeight: 1.5, letterSpacing: '-0.13px',
+                fontSize: 11, fontWeight: 700,
+                padding: '2px 8px', borderRadius: 0,
+                background: 'transparent', color: tint.text,
+                border: `1px solid ${tint.text}`,
+                lineHeight: 1.5, letterSpacing: '0.04em',
               }}
             >
               {label}
             </span>
           </div>
 
-          {/* メタ情報 */}
           <div
             className="flex items-center gap-2.5 flex-wrap"
-            style={{ fontSize: 12, color: '#8a8f98', lineHeight: 1 }}
+            style={{ fontSize: 12, color: C.textMute, lineHeight: 1 }}
           >
             <span className="flex items-center gap-1">
               <MapPin style={{ width: 11, height: 11 }} />
               {areaStr}
             </span>
             {budgetStr && (
-              <span style={{ color: '#7170ff', fontWeight: 510 }}>{budgetStr}</span>
+              <span style={{ color: C.textMain, fontWeight: 700 }}>{budgetStr}</span>
             )}
             {store.rating && (
               <span className="flex items-center gap-0.5">
-                <Star style={{ width: 11, height: 11, fill: '#8a8f98' }} />
-                {store.rating.toFixed(1)}
+                <Star style={{ width: 11, height: 11, fill: C.ratingStar, color: C.ratingStar }} />
+                <span style={{ color: C.textSub, fontWeight: 600 }}>{store.rating.toFixed(1)}</span>
               </span>
             )}
             {distance != null && (
               <span
                 className="flex items-center gap-0.5"
-                style={{ color: '#27a644', fontWeight: 510 }}
+                style={{ color: C.green, fontWeight: 600 }}
               >
                 📍 {formatDistance(distance)}
               </span>
@@ -173,7 +183,7 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
           </div>
         </div>
 
-        {/* お気に入りボタン */}
+        {/* お気に入り */}
         <button
           onClick={e => { e.stopPropagation(); toggle(store.id); }}
           className="flex items-center justify-center flex-shrink-0 self-start mt-1"
@@ -181,19 +191,19 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
         >
           <Heart
             style={{
-              width: 16, height: 16,
-              fill: isFav ? '#f472b6' : 'none',
-              color: isFav ? '#f472b6' : '#3e3e44',
+              width: 17, height: 17,
+              fill: isFav ? C.pink : 'none',
+              color: isFav ? C.pink : C.textMute,
               transition: 'all 0.15s',
             }}
           />
         </button>
       </div>
 
-      {/* ── アクション行 ── */}
+      {/* アクション行 */}
       <div
         className="flex items-center gap-2 px-4 pb-3"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}
+        style={{ borderTop: `1px solid ${C.borderSub}`, paddingTop: 10 }}
       >
         {store.instagram_handle && (
           <a
@@ -201,8 +211,15 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={e => e.stopPropagation()}
-            className="ln-btn-ghost flex items-center gap-1.5"
-            style={{ padding: '5px 11px', fontSize: 12 }}
+            className="flex items-center gap-1.5"
+            style={{
+              padding: '5px 11px', fontSize: 12, fontWeight: 600,
+              color: C.textSub,
+              background: 'transparent',
+              border: `1px solid ${C.border}`,
+              borderRadius: 0,
+              letterSpacing: '0.02em',
+            }}
           >
             <Instagram style={{ width: 12, height: 12 }} />
             Instagram
@@ -217,9 +234,9 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
             onClick={e => e.stopPropagation()}
             className="flex items-center gap-1.5"
             style={{
-              padding: '6px 14px', fontSize: 12, fontWeight: 510,
-              background: '#5e6ad2', color: '#fff',
-              borderRadius: 7, letterSpacing: '-0.13px',
+              padding: '7px 16px', fontSize: 12, fontWeight: 700,
+              background: C.inkFill, color: C.inkOnPaper,
+              borderRadius: 0, letterSpacing: '0.06em',
               lineHeight: 1,
             }}
           >
@@ -232,7 +249,6 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
   );
 }
 
-// ── StoreList ────────────────────────────────────────────────
 interface ListProps {
   stores: Restaurant[];
   distances?: Record<string, number>;
@@ -245,14 +261,14 @@ export default function StoreList({ stores, distances, selectedId, onSelect, car
   if (stores.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3">
-        <span style={{ fontSize: 36, opacity: 0.2 }}>🏮</span>
-        <p style={{ fontSize: 14, color: '#62666d' }}>条件に合う店が見つかりません</p>
+        <span style={{ fontSize: 40, opacity: 0.3 }}>🏮</span>
+        <p style={{ fontSize: 14, color: C.textMute }}>条件に合う店が見つかりません</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-1.5 px-3 py-3">
+    <div className="flex flex-col gap-2 px-3 py-3">
       {stores.map(store => (
         <div
           key={store.id}

@@ -4,6 +4,17 @@ import Link from 'next/link';
 import { FeedActivity } from '@/types/social';
 import { Heart, MapPin, UserPlus } from 'lucide-react';
 
+const C = {
+  surface:   '#FAF4E6',
+  ink:       '#262220',
+  inkSoft:   '#3D3832',
+  mute:      '#857E78',
+  rule:      '#D5CBBE',
+  accent:    '#B94A3B',
+  blue:      '#3A6DB0',
+  green:     '#2E7D5B',
+};
+
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -19,39 +30,39 @@ function timeAgo(dateStr: string): string {
 const ACTIVITY_CONFIG = {
   visit: {
     icon: MapPin,
-    iconClass: 'text-kobe-gold bg-kobe-gold/15',
+    iconColor: C.green,
     label: (a: FeedActivity) => (
       <>
-        <span className="font-semibold text-harbor-100">{a.actor_display_name ?? a.actor_username}</span>
-        <span className="text-harbor-400"> が </span>
-        <span className="font-semibold text-harbor-200">{a.restaurant_name}</span>
-        <span className="text-harbor-400"> に行った</span>
+        <span style={{ color: C.ink, fontWeight: 700 }}>{a.actor_display_name ?? a.actor_username}</span>
+        <span style={{ color: C.mute }}> が </span>
+        <span style={{ color: C.ink, fontWeight: 600 }}>{a.restaurant_name}</span>
+        <span style={{ color: C.mute }}> に行った</span>
       </>
     ),
   },
   favorite: {
     icon: Heart,
-    iconClass: 'text-kobe-red bg-kobe-red/15',
+    iconColor: C.accent,
     label: (a: FeedActivity) => (
       <>
-        <span className="font-semibold text-harbor-100">{a.actor_display_name ?? a.actor_username}</span>
-        <span className="text-harbor-400"> が </span>
-        <span className="font-semibold text-harbor-200">{a.restaurant_name}</span>
-        <span className="text-harbor-400"> をお気に入りに追加</span>
+        <span style={{ color: C.ink, fontWeight: 700 }}>{a.actor_display_name ?? a.actor_username}</span>
+        <span style={{ color: C.mute }}> が </span>
+        <span style={{ color: C.ink, fontWeight: 600 }}>{a.restaurant_name}</span>
+        <span style={{ color: C.mute }}> を控えた</span>
       </>
     ),
   },
   follow: {
     icon: UserPlus,
-    iconClass: 'text-blue-400 bg-blue-400/15',
+    iconColor: C.blue,
     label: (a: FeedActivity) => (
       <>
-        <span className="font-semibold text-harbor-100">{a.actor_display_name ?? a.actor_username}</span>
-        <span className="text-harbor-400"> が </span>
-        <span className="font-semibold text-harbor-200">
+        <span style={{ color: C.ink, fontWeight: 700 }}>{a.actor_display_name ?? a.actor_username}</span>
+        <span style={{ color: C.mute }}> が </span>
+        <span style={{ color: C.ink, fontWeight: 600 }}>
           {a.target_display_name ?? a.target_username}
         </span>
-        <span className="text-harbor-400"> をフォロー</span>
+        <span style={{ color: C.mute }}> をフォロー</span>
       </>
     ),
   },
@@ -72,66 +83,128 @@ export default function FeedItem({ activity }: Props) {
   const targetUserLink = activity.target_user_id ? `/users/${activity.target_user_id}` : null;
 
   return (
-    <div className="flex gap-3 p-4 hover:bg-harbor-900/50 transition-colors">
-      {/* Actor avatar */}
+    <div
+      className="flex gap-3 px-4 py-4"
+      style={{ borderBottom: `1px solid ${C.rule}` }}
+    >
       <Link href={`/users/${activity.user_id}`} className="flex-shrink-0 mt-0.5">
         {activity.actor_avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={activity.actor_avatar_url}
             alt={activity.actor_username}
-            className="w-9 h-9 rounded-full object-cover"
+            className="w-9 h-9 object-cover"
+            style={{ borderRadius: 0, border: `1px solid ${C.ink}` }}
           />
         ) : (
-          <div className="w-9 h-9 rounded-full bg-kobe-gold/20 border border-kobe-gold/30 flex items-center justify-center text-kobe-gold font-bold text-sm">
+          <div
+            className="w-9 h-9 flex items-center justify-center"
+            style={{
+              background: 'transparent',
+              border: `1px solid ${C.ink}`,
+              color: C.ink,
+              fontWeight: 700,
+              fontSize: 14,
+              borderRadius: 0,
+            }}
+          >
             {avatarFallback}
           </div>
         )}
       </Link>
 
       <div className="flex-1 min-w-0">
-        {/* Activity icon + text */}
         <div className="flex items-start gap-2">
-          <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5 ${config.iconClass}`}>
-            <Icon className="w-3 h-3" />
+          <span
+            className="flex-shrink-0 flex items-center justify-center mt-0.5"
+            style={{
+              width: 20, height: 20,
+              color: config.iconColor,
+              borderRadius: 0,
+            }}
+          >
+            <Icon className="w-3.5 h-3.5" />
           </span>
-          <p className="text-sm leading-snug flex-1 flex-wrap">
+          <p style={{ fontSize: 13, lineHeight: 1.6, flex: 1 }}>
             {config.label(activity)}
           </p>
         </div>
 
-        {/* Restaurant card (for visit/favorite) */}
         {restaurantLink && activity.restaurant_name && (
           <Link
             href={restaurantLink}
-            className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-harbor-800 hover:bg-harbor-700 border border-harbor-700 transition-colors text-xs"
+            className="mt-2 flex items-center gap-2"
+            style={{
+              padding: '8px 12px',
+              background: C.surface,
+              border: `1px solid ${C.ink}`,
+              borderRadius: 0,
+              fontSize: 12,
+            }}
           >
-            <MapPin className="w-3 h-3 text-kobe-gold flex-shrink-0" />
-            <span className="font-medium text-harbor-200 truncate">{activity.restaurant_name}</span>
+            <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: C.ink }} />
+            <span className="truncate" style={{ color: C.ink, fontWeight: 700 }}>
+              {activity.restaurant_name}
+            </span>
             {activity.restaurant_area && (
-              <span className="text-harbor-500 ml-auto flex-shrink-0">{activity.restaurant_area}</span>
+              <span
+                className="ml-auto flex-shrink-0"
+                style={{ color: C.mute, letterSpacing: '0.04em' }}
+              >
+                {activity.restaurant_area}
+              </span>
             )}
           </Link>
         )}
 
-        {/* Target user card (for follow) */}
         {targetUserLink && activity.target_username && (
           <Link
             href={targetUserLink}
-            className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-harbor-800 hover:bg-harbor-700 border border-harbor-700 transition-colors text-xs"
+            className="mt-2 flex items-center gap-2"
+            style={{
+              padding: '8px 12px',
+              background: 'transparent',
+              border: `1px solid ${C.ink}`,
+              borderRadius: 0,
+              fontSize: 12,
+            }}
           >
-            <div className="w-5 h-5 rounded-full bg-kobe-gold/20 flex items-center justify-center text-kobe-gold font-bold text-[10px] flex-shrink-0">
+            <div
+              className="flex items-center justify-center flex-shrink-0"
+              style={{
+                width: 20, height: 20,
+                background: 'transparent',
+                border: `1px solid ${C.ink}`,
+                color: C.ink,
+                fontWeight: 700,
+                fontSize: 10,
+                borderRadius: 0,
+              }}
+            >
               {(activity.target_display_name ?? activity.target_username).charAt(0).toUpperCase()}
             </div>
-            <span className="font-medium text-harbor-200 truncate">
+            <span className="truncate" style={{ color: C.ink, fontWeight: 700 }}>
               {activity.target_display_name ?? activity.target_username}
             </span>
-            <span className="text-harbor-500 text-[11px] ml-auto flex-shrink-0">
+            <span
+              className="ml-auto flex-shrink-0"
+              style={{ color: C.mute, fontSize: 11 }}
+            >
               @{activity.target_username}
             </span>
           </Link>
         )}
 
-        <p className="text-harbor-600 text-[11px] mt-1.5">{timeAgo(activity.created_at)}</p>
+        <p
+          style={{
+            fontSize: 10,
+            color: C.mute,
+            marginTop: 8,
+            letterSpacing: '0.12em',
+          }}
+        >
+          {timeAgo(activity.created_at)}
+        </p>
       </div>
     </div>
   );

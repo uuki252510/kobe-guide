@@ -6,6 +6,14 @@ import FollowButton from './FollowButton';
 import MutualBadge from './MutualBadge';
 import { MapPin } from 'lucide-react';
 
+const C = {
+  surface: '#FAF4E6',
+  ink:     '#262220',
+  inkSoft: '#3D3832',
+  mute:    '#857E78',
+  rule:    '#D5CBBE',
+};
+
 const AREA_LABELS: Record<string, string> = {
   sannomiya: '三宮',
   motomachi: '元町',
@@ -26,51 +34,73 @@ export default function UserCard({ profile, followStatus, showFollowCounts = tru
   return (
     <Link
       href={`/users/${profile.id}`}
-      className="flex items-center gap-3 p-3 rounded-xl bg-harbor-900 hover:bg-harbor-800 transition-colors border border-harbor-800 hover:border-harbor-700"
+      className="flex items-center gap-3 p-3"
+      style={{
+        background: C.surface,
+        border: `1px solid ${C.ink}`,
+        borderRadius: 0,
+      }}
     >
-      {/* Avatar */}
       <div className="relative flex-shrink-0">
         {profile.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={profile.avatar_url}
             alt={profile.username}
-            className="w-11 h-11 rounded-full object-cover"
+            className="w-11 h-11 object-cover"
+            style={{ borderRadius: 0, border: `1px solid ${C.ink}` }}
           />
         ) : (
-          <div className="w-11 h-11 rounded-full bg-kobe-gold/20 border border-kobe-gold/30 flex items-center justify-center text-kobe-gold font-bold text-base">
+          <div
+            className="w-11 h-11 flex items-center justify-center"
+            style={{
+              background: 'transparent',
+              border: `1px solid ${C.ink}`,
+              color: C.ink,
+              fontWeight: 700,
+              fontSize: 16,
+              borderRadius: 0,
+            }}
+          >
             {avatarFallback}
           </div>
         )}
       </div>
 
-      {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="font-semibold text-harbor-100 text-sm truncate">
+          <span
+            className="truncate"
+            style={{
+              fontWeight: 700, color: C.ink,
+              fontSize: 14, letterSpacing: '-0.01em',
+            }}
+          >
             {profile.display_name ?? profile.username}
           </span>
           {followStatus?.isMutual && <MutualBadge />}
         </div>
-        <p className="text-harbor-500 text-xs mt-0.5">@{profile.username}</p>
+        <p style={{ color: C.mute, fontSize: 11, marginTop: 2 }}>@{profile.username}</p>
 
-        <div className="flex items-center gap-3 mt-1">
+        <div className="flex items-center gap-3 mt-1.5">
           {profile.area_preference && (
-            <span className="flex items-center gap-0.5 text-harbor-500 text-[11px]">
+            <span
+              className="flex items-center gap-0.5"
+              style={{ color: C.mute, fontSize: 10, letterSpacing: '0.04em' }}
+            >
               <MapPin className="w-2.5 h-2.5" />
               {AREA_LABELS[profile.area_preference] ?? profile.area_preference}
             </span>
           )}
           {showFollowCounts && (
-            <>
-              <span className="text-harbor-500 text-[11px]">
-                <span className="text-harbor-300 font-medium">{profile.follower_count ?? 0}</span> フォロワー
-              </span>
-            </>
+            <span style={{ color: C.mute, fontSize: 10, letterSpacing: '0.04em' }}>
+              <span style={{ color: C.ink, fontWeight: 700 }}>{profile.follower_count ?? 0}</span>
+              {' '}フォロワー
+            </span>
           )}
         </div>
       </div>
 
-      {/* Follow button */}
       <div onClick={(e) => e.preventDefault()} className="flex-shrink-0">
         <FollowButton targetUserId={profile.id} initialStatus={followStatus} size="sm" />
       </div>

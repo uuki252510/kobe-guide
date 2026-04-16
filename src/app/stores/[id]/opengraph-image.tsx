@@ -5,21 +5,20 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 const TYPE_LABEL: Record<string, string> = {
-  tachinomi: '立ち飲み',
-  kakuuchi:  '角打ち',
-  yakitori:  '焼鳥',
-  seafood:   '海鮮',
-  wine:      'ワイン',
-  italian:   'イタリアン',
-  hormones:  'ホルモン',
-  bar:       'バー',
+  tachinomi: '立ち飲み', kakuuchi: '角打ち', yakitori: '焼鳥',
+  seafood: '海鮮', wine: 'ワイン', italian: 'イタリアン',
+  hormones: 'ホルモン', bar: 'バー',
 };
 
 const AREA_LABEL: Record<string, string> = {
-  sannomiya:    '三宮',
-  motomachi:    '元町',
-  surroundings: '周辺',
+  sannomiya: '三宮', motomachi: '元町', surroundings: '周辺',
 };
+
+const PAPER      = '#F3ECDD';
+const INK        = '#262220';
+const INK_ON_P   = '#FAF4E6';
+const MUTE       = '#857E78';
+const RULE       = '#D5CBBE';
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -40,7 +39,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const area = data?.area ? (AREA_LABEL[data.area] ?? data.area) : '三宮・元町';
   const memo = data?.must_try_menu ?? '';
 
-  // Noto Sans JP フォント取得
   let fontData: ArrayBuffer | null = null;
   try {
     const css = await fetch(
@@ -51,7 +49,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     if (fontUrl) {
       fontData = await fetch(fontUrl).then(r => r.arrayBuffer());
     }
-  } catch { /* フォント取得失敗時はデフォルトフォントで続行 */ }
+  } catch { /* fallback */ }
 
   return new ImageResponse(
     (
@@ -61,83 +59,103 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          background: 'linear-gradient(145deg, #0a0a0f 0%, #12121e 60%, #060608 100%)',
+          background: PAPER,
           padding: '60px',
           position: 'relative',
+          border: `2px solid ${INK}`,
         }}
       >
-        {/* 背景装飾 */}
-        <div style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'radial-gradient(ellipse at 20% 50%, rgba(201,164,76,0.08) 0%, transparent 60%)',
-        }} />
-
-        {/* 上部：エリア・カテゴリバッジ */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
-          <div style={{
+        <div
+          style={{
             display: 'flex',
             alignItems: 'center',
-            background: 'rgba(201,164,76,0.15)',
-            border: '1px solid rgba(201,164,76,0.4)',
-            borderRadius: '100px',
-            padding: '8px 20px',
-          }}>
-            <span style={{ color: '#C9A44C', fontSize: '18px', fontWeight: 700 }}>{area}</span>
+            gap: '14px',
+            marginBottom: '40px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: INK,
+              padding: '8px 20px',
+            }}
+          >
+            <span style={{ color: INK_ON_P, fontSize: '18px', fontWeight: 700, letterSpacing: '0.1em' }}>
+              {area}
+            </span>
           </div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            background: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: '100px',
-            padding: '8px 20px',
-          }}>
-            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '18px' }}>{type}</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'transparent',
+              border: `1px solid ${INK}`,
+              padding: '8px 20px',
+            }}
+          >
+            <span style={{ color: INK, fontSize: '18px', fontWeight: 700, letterSpacing: '0.08em' }}>
+              {type}
+            </span>
           </div>
         </div>
 
-        {/* 店名 */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}>
-          <div style={{
-            color: 'white',
-            fontSize: name.length > 10 ? '64px' : '80px',
-            fontWeight: 700,
-            lineHeight: 1.15,
-            marginBottom: memo ? '24px' : '0',
-          }}>
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              color: INK,
+              fontSize: name.length > 10 ? '68px' : '84px',
+              fontWeight: 700,
+              lineHeight: 1.15,
+              letterSpacing: '-0.02em',
+              marginBottom: memo ? '24px' : '0',
+            }}
+          >
             {name}
           </div>
           {memo && (
-            <div style={{
-              color: 'rgba(255,255,255,0.5)',
-              fontSize: '24px',
-              fontStyle: 'italic',
-              marginTop: '8px',
-            }}>
-              &ldquo;{memo.slice(0, 40)}{memo.length > 40 ? '...' : ''}&rdquo;
+            <div
+              style={{
+                color: MUTE,
+                fontSize: '24px',
+                marginTop: '8px',
+                borderLeft: `3px solid ${INK}`,
+                paddingLeft: '18px',
+              }}
+            >
+              {memo.slice(0, 40)}{memo.length > 40 ? '…' : ''}
             </div>
           )}
         </div>
 
-        {/* 下部：サイト名 + 仕切り線 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderTop: '1px solid rgba(255,255,255,0.1)',
-          paddingTop: '28px',
-          marginTop: '40px',
-        }}>
-          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '20px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderTop: `1px solid ${RULE}`,
+            paddingTop: '28px',
+            marginTop: '40px',
+          }}
+        >
+          <span style={{ color: MUTE, fontSize: '20px', letterSpacing: '0.04em' }}>
             kobe-tachinomi.taip-ai.com
           </span>
-          <span style={{ color: '#C9A44C', fontSize: '22px', fontWeight: 700 }}>
+          <span
+            style={{
+              color: INK,
+              fontSize: '22px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+            }}
+          >
             神戸立ち飲みマップ
           </span>
         </div>

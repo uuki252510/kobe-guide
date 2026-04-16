@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-server';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const authError = requireAdminAuth(req);
+  if (authError) return authError;
+
   const { data, error } = await supabaseAdmin
     .from('spots')
     .select('*')
@@ -14,6 +18,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const authError = requireAdminAuth(req);
+  if (authError) return authError;
+
   const body = await req.json();
   const { data, error } = await supabaseAdmin.from('spots').insert(body).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

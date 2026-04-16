@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
 export const dynamic = 'force-dynamic';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-server';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import {
   buildSystemPromptFromRestaurants,
   buildSystemPrompt,
@@ -94,6 +95,22 @@ function restaurantToSpot(r: Restaurant): Spot {
 // メインハンドラー
 // ============================================================
 export async function POST(req: NextRequest) {
+  // レート制限: 1IPあたり1分間に10リクエストまで
+  const ip = getClientIp(req);
+  const { allowed, resetAt } = checkRateLimit(ip, 10, 60_000);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please wait a moment.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    );
+  }
+
   try {
     const body: ChatRequest = await req.json();
     const { message, conversationId, history, language: clientLanguage } = body;
@@ -167,7 +184,7 @@ export async function POST(req: NextRequest) {
     }));
 
     const response = await anthropic.messages.create({
-      model:      'claude-sonnet-4-6',
+      model:      'claude-opus-4-6',
       max_tokens: 1024,
       system:     systemPrompt,
       messages:   [...claudeHistory, { role: 'user', content: message }],
