@@ -3,17 +3,8 @@
 import Link from 'next/link';
 import { X, Star, MapPin, ChevronRight, Plus, Check } from 'lucide-react';
 import type { Restaurant } from '@/types/restaurant';
-
-const AREA_LABEL: Record<string, string> = {
-  sannomiya: '三宮', motomachi: '元町', surroundings: '周辺',
-  kitano: '北野', nankinmachi: '南京町',
-};
-
-const TYPE_LABEL: Record<string, string> = {
-  tachinomi: '立ち飲み', kakuuchi: '角打ち', yakitori: '焼鳥',
-  seafood: '海鮮', wine: 'ワイン', italian: 'イタリアン',
-  hormones: 'ホルモン', bar: 'バー',
-};
+import { useUILang } from '@/hooks/useUILang';
+import { useT } from '@/lib/i18n';
 
 const GOLD = '#D4A842';
 const GOLD_SOFT = '#B8903A';
@@ -62,14 +53,16 @@ export default function StoreBottomSheet({
   restaurant, distanceKm, inCourse, nearby,
   onClose, onAddToCourse, onRemoveFromCourse, onSelectNearby,
 }: Props) {
+  const lang = useUILang();
+  const tr = useT(lang);
   const isOpen = !!restaurant;
 
   const photoUrl = restaurant ? photoUrlOf(restaurant) : null;
 
   const areaText = restaurant
     ? [
-        AREA_LABEL[restaurant.area] ?? restaurant.area,
-        restaurant.tachinomi_type ? TYPE_LABEL[restaurant.tachinomi_type] : null,
+        tr.area[restaurant.area] ?? restaurant.area,
+        restaurant.tachinomi_type ? (tr.type[restaurant.tachinomi_type] ?? restaurant.tachinomi_type) : null,
       ].filter(Boolean).join(' · ')
     : '';
 
@@ -223,7 +216,7 @@ export default function StoreBottomSheet({
                 }}
               >
                 {inCourse ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                {inCourse ? '追加済' : 'コース'}
+                {inCourse ? tr.sheet.added : tr.sheet.addToCourse}
               </button>
               <Link
                 href={`/stores/${restaurant.id}`}
@@ -236,7 +229,7 @@ export default function StoreBottomSheet({
                   fontSize: 12, fontWeight: 800, letterSpacing: '0.06em',
                 }}
               >
-                詳細を見る
+                {tr.sheet.viewDetails}
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -248,9 +241,9 @@ export default function StoreBottomSheet({
                   style={{ color: TEXT_MUTE }}
                 >
                   <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.2em' }}>
-                    NEARBY
+                    {tr.sheet.nearby}
                   </span>
-                  <span style={{ fontSize: 10 }}>近くの銘店</span>
+                  <span style={{ fontSize: 10 }}>{tr.sheet.nearbyLabel}</span>
                 </div>
                 <div
                   className="flex gap-2 overflow-x-auto scrollbar-hide px-3"
@@ -311,7 +304,7 @@ export default function StoreBottomSheet({
                           className="truncate"
                           style={{ fontSize: 10, color: TEXT_MUTE, marginTop: 1 }}
                         >
-                          {AREA_LABEL[n.area] ?? n.area}
+                          {tr.area[n.area] ?? n.area}
                           {n.budget_max ? ` · 〜¥${n.budget_max.toLocaleString()}` : ''}
                         </div>
                       </button>

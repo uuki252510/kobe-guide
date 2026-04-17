@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MessageSquare, Map, List, Rss, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useUILang } from '@/hooks/useUILang';
+import { useT } from '@/lib/i18n';
 
 interface Props {
   courseCount?: number;
@@ -17,16 +19,18 @@ const INK_ON_PAPER = '#FAF4E6';
 export default function BottomNav({ courseCount = 0 }: Props) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const lang = useUILang();
+  const tr = useT(lang);
 
   const tabs = [
-    { href: '/',       icon: MessageSquare, label: '案内' },
-    { href: '/map',    icon: Map,           label: '地図' },
-    { href: '/stores', icon: List,          label: '一覧' },
-    { href: '/feed',   icon: Rss,           label: 'フィード' },
+    { href: '/',       icon: MessageSquare, label: tr.nav.guide },
+    { href: '/map',    icon: Map,           label: tr.nav.map },
+    { href: '/stores', icon: List,          label: tr.nav.list },
+    { href: '/feed',   icon: Rss,           label: tr.nav.feed },
     {
       href: user ? `/users/${user.id}` : '/auth',
       icon: User,
-      label: user ? 'マイページ' : 'ログイン',
+      label: user ? tr.nav.mypage : tr.nav.login,
     },
   ];
 

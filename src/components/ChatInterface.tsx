@@ -7,6 +7,8 @@ import Link from 'next/link';
 import SpotCard from './SpotCard';
 import MoodCards from './MoodCards';
 import { Message, Language } from '@/types';
+import { useUILang } from '@/hooks/useUILang';
+import { useT } from '@/lib/i18n';
 
 const INK = '#262220';
 const PAPER = '#F3ECDD';
@@ -14,7 +16,7 @@ const PAPER_LIGHT = '#FAF4E6';
 const RULE = '#D5CBBE';
 const MUTE = '#857E78';
 
-function MessageBubble({ msg, conversationId }: { msg: Message; conversationId?: string }) {
+function MessageBubble({ msg, conversationId, userRole, aiRole }: { msg: Message; conversationId?: string; userRole: string; aiRole: string }) {
   const isUser = msg.role === 'user';
 
   return (
@@ -24,7 +26,7 @@ function MessageBubble({ msg, conversationId }: { msg: Message; conversationId?:
           className="text-[10px] tracking-[0.2em] uppercase"
           style={{ color: MUTE, fontWeight: 700 }}
         >
-          {isUser ? '客' : '案内'}
+          {isUser ? userRole : aiRole}
         </span>
         <span className="h-px w-6" style={{ background: RULE }} />
       </div>
@@ -52,7 +54,7 @@ function MessageBubble({ msg, conversationId }: { msg: Message; conversationId?:
                 style={{ background: INK }}
               />
               <span className="text-[11px] tracking-[0.1em]" style={{ color: MUTE }}>
-                考え中
+                {aiRole}…
               </span>
             </div>
           ) : (
@@ -83,6 +85,8 @@ export default function ChatInterface() {
   const [showAllMoods, setShowAllMoods] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const uiLang = useUILang();
+  const tr = useT(uiLang);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -142,7 +146,7 @@ export default function ChatInterface() {
         {
           id: (Date.now() + 2).toString(),
           role: 'assistant',
-          content: '申し訳ありません、エラーが発生しました。もう一度お試しください。',
+          content: tr.chat.errorMsg,
         },
       ]);
     } finally {
@@ -178,30 +182,30 @@ export default function ChatInterface() {
               </div>
 
               <h2 className="text-harbor-800 text-2xl font-bold mb-2 tracking-tight">
-                今夜、どこ行く？
+                {tr.chat.hero}
               </h2>
               <p className="text-harbor-800 text-sm font-semibold mb-1">
-                広告なし。地元民だけが知ってる90軒。
+                {tr.chat.heroSub}
               </p>
               <p className="text-harbor-400 text-xs">
-                三宮・元町エリアの立ち飲み案内
+                {tr.chat.heroArea}
               </p>
 
               {/* メインCTA */}
               <div className="mt-5 flex flex-col items-center gap-3">
                 <button
-                  onClick={() => sendMessage('今夜のおすすめを教えてください')}
+                  onClick={() => sendMessage(uiLang === 'ja' ? '今夜のおすすめを教えてください' : "What are your top recommendations for tonight?")}
                   className="w-full max-w-xs px-6 py-4 font-bold text-[15px] tracking-[0.06em] active:scale-[0.98] transition-all duration-150"
                   style={{ background: INK, color: PAPER }}
                 >
-                  案内してもらう
+                  {tr.chat.ctaBtn}
                 </button>
                 <Link
                   href="/stores"
                   className="text-sm tracking-[0.02em]"
                   style={{ color: MUTE }}
                 >
-                  自分で探す →
+                  {tr.chat.ctaSelf}
                 </Link>
               </div>
             </div>
@@ -234,7 +238,7 @@ export default function ChatInterface() {
                 )}
 
                 <p className="text-harbor-400 text-[10px] text-center mt-5">
-                  日本語 · English · 中文 · 한국어 OK
+                  🇯🇵 🇺🇸 🇹🇼 🇨🇳 🇰🇷 OK
                 </p>
               </div>
             )}
@@ -242,7 +246,7 @@ export default function ChatInterface() {
         )}
 
         {messages.map(msg => (
-          <MessageBubble key={msg.id} msg={msg} conversationId={conversationId} />
+          <MessageBubble key={msg.id} msg={msg} conversationId={conversationId} userRole={tr.chat.userRole} aiRole={tr.chat.aiRole} />
         ))}
 
         <div ref={messagesEndRef} />
@@ -260,7 +264,7 @@ export default function ChatInterface() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="今夜の気分を教えてください... / English OK"
+              placeholder={tr.chat.placeholder}
               className="w-full px-4 py-3 text-[14px] resize-none focus:outline-none transition-colors min-h-[48px] max-h-[120px] leading-relaxed"
               style={{
                 background: PAPER_LIGHT,
@@ -288,7 +292,7 @@ export default function ChatInterface() {
           className="text-[10px] text-center mt-2 tracking-[0.08em]"
           style={{ color: MUTE }}
         >
-          広告・スポンサーなし · 中立な案内
+          {tr.chat.neutralNote}
         </p>
       </div>
     </div>
