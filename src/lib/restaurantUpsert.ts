@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Restaurant } from '@/types/restaurant';
 
 // サーバーサイド専用クライアント（RLS bypass）
@@ -97,9 +97,8 @@ export async function upsertRestaurant(
 // 近似重複チェック
 // 同じ住所ブロック内に名前が似た店があれば review_needed = true
 // ============================================================
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function checkFuzzyDuplicate(
-  supabase: any,
+  supabase: SupabaseClient,
   name: string,
   address: string | null
 ): Promise<boolean> {

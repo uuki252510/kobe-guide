@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { FeedActivity } from '@/types/social';
 import FeedItem from '@/components/social/FeedItem';
@@ -38,14 +38,14 @@ export default function FeedPage() {
   const { user, accessToken, loading: authLoading } = useAuth();
   const [activities, setActivities] = useState<FeedActivity[]>([]);
   const [total, setTotal] = useState(0);
-  const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const offsetRef = useRef(0);
 
   const loadFeed = useCallback(
     async (reset = false) => {
       if (!accessToken) return;
-      const currentOffset = reset ? 0 : offset;
+      const currentOffset = reset ? 0 : offsetRef.current;
       if (reset) setRefreshing(true);
       else setLoading(true);
 
@@ -56,24 +56,23 @@ export default function FeedPage() {
 
       if (reset) {
         setActivities(json.activities ?? []);
-        setOffset(PAGE_SIZE);
+        offsetRef.current = PAGE_SIZE;
       } else {
         setActivities((prev) => [...prev, ...(json.activities ?? [])]);
-        setOffset((prev) => prev + PAGE_SIZE);
+        offsetRef.current = currentOffset + PAGE_SIZE;
       }
       setTotal(json.total ?? 0);
       setLoading(false);
       setRefreshing(false);
     },
-    [accessToken, offset],
+    [accessToken],
   );
 
   useEffect(() => {
     if (accessToken) loadFeed(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken]);
+  }, [accessToken, loadFeed]);
 
-  const hasMore = activities.length < total;
+  const hasMore = offsetRef.current < total;
 
   if (authLoading) {
     return (
