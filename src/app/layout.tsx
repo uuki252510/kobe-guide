@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://kobe-tachinomi.taip-ai.com',
   },
+  verification: {
+    google: 'tQpqeV4fsdgAS6ihav1ekmppB',
+  },
 };
 
 export const viewport: Viewport = {
