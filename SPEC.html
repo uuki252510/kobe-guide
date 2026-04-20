@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>神戸立ち飲みマップ — 仕様書</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1a1a2e;
+    background: #fff;
+    padding: 40px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    text-align: center;
+    padding: 60px 0 50px;
+    border-bottom: 3px solid #c8970a;
+    margin-bottom: 40px;
+  }
+  .cover .badge {
+    display: inline-block;
+    background: #c8970a;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .cover h1 { font-size: 32px; font-weight: 900; color: #0d1b2a; margin-bottom: 8px; }
+  .cover .subtitle { font-size: 15px; color: #555; margin-bottom: 24px; }
+  .cover .meta { font-size: 12px; color: #888; }
+
+  /* ── Section ── */
+  h2 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #0d1b2a;
+    border-left: 4px solid #c8970a;
+    padding-left: 12px;
+    margin: 36px 0 16px;
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0d1b2a;
+    margin: 20px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  /* ── Status badges ── */
+  .status {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .status-done  { background: #d4edda; color: #155724; }
+  .status-ready { background: #cce5ff; color: #004085; }
+  .status-todo  { background: #fff3cd; color: #856404; }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+  th {
+    background: #0d1b2a;
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+
+  /* ── Code / Env ── */
+  .env-block {
+    background: #0d1b2a;
+    color: #e8e8e8;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    margin: 12px 0;
+  }
+  .env-block .key   { color: #c8970a; }
+  .env-block .val   { color: #7ec8e3; }
+  .env-block .comment { color: #666; }
+
+  /* ── Security items ── */
+  .sec-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 8px 0;
+  }
+  .sec-item.ok   { background: #f0faf0; border: 1px solid #b8ddb8; }
+  .sec-item.warn { background: #fffbea; border: 1px solid #f0d060; }
+  .sec-icon { font-size: 18px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+  .sec-title { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+  .sec-desc  { font-size: 12px; color: #555; }
+  .sec-code  { font-family: monospace; font-size: 11px; background: #eee; padding: 1px 6px; border-radius: 4px; }
+
+  /* ── File tree ── */
+  .tree {
+    background: #f7f7f7;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.9;
+  }
+  .tree .dir  { color: #0d1b2a; font-weight: 700; }
+  .tree .file { color: #444; }
+  .tree .note { color: #888; font-style: italic; }
+
+  /* ── Page break ── */
+  .page-break { page-break-before: always; }
+
+  /* ── Print ── */
+  @media print {
+    body { padding: 20px; font-size: 12px; }
+    .cover { padding: 30px 0 30px; }
+    h2 { margin-top: 24px; }
+    .page-break { page-break-before: always; }
+  }
+
+  @page {
+    margin: 20mm;
+    size: A4;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     COVER
+══════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="badge">PROJECT SPEC</div>
+  <h1>⚓ 神戸立ち飲みマップ</h1>
+  <div class="subtitle">Kobe Tachinomi Map — 仕様書 v1.0</div>
+  <div class="meta">
+    作成日: 2026-04-14 &nbsp;|&nbsp; ステータス: MVP 完成・稼働中 &nbsp;|&nbsp; 作成者: NexusAI
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     1. プロジェクト概要
+══════════════════════════════════════════════ -->
+<h2>1. プロジェクト概要</h2>
+<table>
+  <tr><th width="180">項目</th><th>内容</th></tr>
+  <tr><td>プロジェクト名</td><td>神戸立ち飲みマップ（Kobe Tachinomi Map）</td></tr>
+  <tr><td>コンセプト</td><td>神戸・三宮〜元町エリアの立ち飲み店を AI チャットで発見できるガイドサービス</td></tr>
+  <tr><td>ターゲット</td><td>神戸在住者・訪日インバウンド旅行者（多言語対応）</td></tr>
+  <tr><td>収益モデル</td><td>店舗掲載料 + 広告（MVP フェーズは無料掲載）</td></tr>
+  <tr><td>開発体制</td><td>ソロ開発（AI アシスト）</td></tr>
+  <tr><td>リポジトリ</td><td>C:\Users\yuy04\kobe-guide\</td></tr>
+  <tr><td>本番 URL</td><td><a href="https://kobe-guide.vercel.app">https://kobe-guide.vercel.app</a></td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════
+     2. 技術スタック
+══════════════════════════════════════════════ -->
+<h2>2. 技術スタック</h2>
+<table>
+  <tr><th width="200">カテゴリ</th><th>技術・ライブラリ</th><th width="100">バージョン</th></tr>
+  <tr><td>フレームワーク</td><td>Next.js (App Router)</td><td>^16.2.2</td></tr>
+  <tr><td>言語</td><td>TypeScript</td><td>^5</td></tr>
+  <tr><td>スタイリング</td><td>Tailwind CSS</td><td>^3.4.1</td></tr>
+  <tr><td>データベース</td><td>Supabase (PostgreSQL)</td><td>^2.47.0</td></tr>
+  <tr><td>AI チャット</td><td>Anthropic Claude API</td><td>SDK ^0.36.0</td></tr>
+  <tr><td>AIモデル</td><td>claude-sonnet-4-6</td><td>—</td></tr>
+  <tr><td>地図</td><td>Leaflet + React Leaflet</td><td>^1.9.4 / ^5.0.0</td></tr>
+  <tr><td>外部 API</td><td>Google Places API (New)</td><td>v1</td></tr>
+  <tr><td>アイコン</td><td>Lucide React</td><td>^0.469.0</td></tr>
+  <tr><td>ランタイム</td><td>React 19 / Node.js</td><td>^19.0.0</td></tr>
+  <tr><td>デプロイ</td><td>Vercel（予定）</td><td>—</td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════
+     3. 設定済み環境変数
+══════════════════════════════════════════════ -->
+<h2>3. 設定済み環境変数</h2>
+<p style="margin-bottom:10px">以下はすべて <code style="background:#eee;padding:1px 6px;border-radius:3px">.env.local</code> に設定済みです（.gitignore で Git 管理外）。</p>
+
+<div class="env-block">
+  <span class="comment"># ── Supabase ────────────────────────────────────────</span><br>
+  <span class="key">NEXT_PUBLIC_SUPABASE_URL</span>=<span class="val">https://xxxxx.supabase.co</span>
+  &nbsp;<span class="comment"># ブラウザ公開OK（anon key と組み合わせて使用）</span><br>
+  <span class="key">NEXT_PUBLIC_SUPABASE_ANON_KEY</span>=<span class="val">eyJ...</span>
+  &nbsp;<span class="comment"># ブラウザ公開OK（RLS で行レベル制御）</span><br>
+  <span class="key">SUPABASE_SERVICE_ROLE_KEY</span>=<span class="val">eyJ...</span>
+  &nbsp;<span class="comment"># ⚠ サーバー専用 — RLS バイパス権限</span><br><br>
+  <span class="comment"># ── Anthropic ───────────────────────────────────────</span><br>
+  <span class="key">ANTHROPIC_API_KEY</span>=<span class="val">sk-ant-...</span>
+  &nbsp;<span class="comment"># ⚠ サーバー専用 — Claude API 呼び出し用</span><br><br>
+  <span class="comment"># ── Google Maps ─────────────────────────────────────</span><br>
+  <span class="key">GOOGLE_MAPS_API_KEY</span>=<span class="val">AIza...</span>
+  &nbsp;<span class="comment"># ⚠ サーバー専用 — Places API + 写真取得</span><br><br>
+  <span class="comment"># ── Admin ───────────────────────────────────────────</span><br>
+  <span class="key">ADMIN_PASSWORD</span>=<span class="val">（設定済み）</span>
+  &nbsp;<span class="comment"># ⚠ サーバー専用 — 管理画面パスワード</span>
+</div>
+
+<table>
+  <tr><th>変数名</th><th>公開範囲</th><th>用途</th></tr>
+  <tr><td>NEXT_PUBLIC_SUPABASE_URL</td><td><span class="status status-ready">ブラウザ公開OK</span></td><td>Supabase プロジェクト URL</td></tr>
+  <tr><td>NEXT_PUBLIC_SUPABASE_ANON_KEY</td><td><span class="status status-ready">ブラウザ公開OK</span></td><td>認証・RLS 付きデータ読み書き</td></tr>
+  <tr><td>SUPABASE_SERVICE_ROLE_KEY</td><td><span class="status status-done">サーバー専用</span></td><td>RLS バイパス（Admin 操作・AI チャット）</td></tr>
+  <tr><td>ANTHROPIC_API_KEY</td><td><span class="status status-done">サーバー専用</span></td><td>Claude API 呼び出し</td></tr>
+  <tr><td>GOOGLE_MAPS_API_KEY</td><td><span class="status status-done">サーバー専用</span></td><td>Places API 検索・写真プロキシ</td></tr>
+  <tr><td>ADMIN_PASSWORD</td><td><span class="status status-done">サーバー専用</span></td><td>管理画面認証トークン</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════
+     4. 機能一覧
+══════════════════════════════════════════════ -->
+<h2>4. 機能一覧</h2>
+
+<h3>4-1. ユーザー向け機能</h3>
+<table>
+  <tr><th width="200">機能</th><th>説明</th><th width="90">URL</th><th width="80">状態</th></tr>
+  <tr>
+    <td>AI チャット</td>
+    <td>Claude が神戸の立ち飲み店をレコメンド。日本語・英語・中国語・韓国語対応。会話履歴付き</td>
+    <td>/</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>店舗一覧・検索</td>
+    <td>エリア / カテゴリ / 予算 / NEW / ソロ OK 等のフィルター付きリスト。マップ / リスト切替</td>
+    <td>/stores</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>地図ビュー</td>
+    <td>Leaflet + OpenStreetMap。店舗ピン・現在地表示</td>
+    <td>/map</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>ユーザー認証</td>
+    <td>Supabase Auth（メール + パスワード）。サインアップ / ログイン / ログアウト</td>
+    <td>/auth/login</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>プロフィール</td>
+    <td>ユーザープロフィール表示・編集</td>
+    <td>/profile</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>フィード</td>
+    <td>フォロー中ユーザーのアクティビティフィード</td>
+    <td>/feed</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>お気に入り</td>
+    <td>店舗をお気に入り登録・一覧表示</td>
+    <td>—</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>訪問記録</td>
+    <td>行った店舗のチェックイン記録</td>
+    <td>—</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>フォロー / ブロック</td>
+    <td>ユーザー間のフォロー・フォロワー・ブロック機能</td>
+    <td>—</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>コース提案</td>
+    <td>複数店舗のはしごコース提案（useCourse hook）</td>
+    <td>—</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>店舗写真</td>
+    <td>Google Places 写真をサーバープロキシ経由で表示</td>
+    <td>/api/photo</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+  <tr>
+    <td>SEO 対策</td>
+    <td>sitemap.ts / robots.ts 自動生成</td>
+    <td>—</td>
+    <td><span class="status status-done">実装済</span></td>
+  </tr>
+</table>
+
+<h3>4-2. 管理者向け機能（/admin）</h3>
+<table>
+  <tr><th width="200">機能</th><th>説明</th><th width="80">状態</th></tr>
+  <tr><td>パスワード認証</td><td>ADMIN_PASSWORD によるゲート。認証後トークンをメモリ保持</td><td><span class="status status-done">実装済</span></td></tr>
+  <tr><td>店舗一覧管理</td><td>全スポット表示・公開/非公開トグル・優先度管理</td><td><span class="status status-done">実装済</span></td></tr>
+  <tr><td>店舗編集</td><td>モーダルで名前・エリア・予算・フラグ・内部メモ等を編集</td><td><span class="status status-done">実装済</span></td></tr>
+  <tr><td>店舗追加</td><td>新規スポット登録フォーム</td><td><span class="status status-done">実装済</span></td></tr>
+  <tr><td>アナリティクス</td><td>スポット別推薦数・地図クリック数・予約クリック数</td><td><span class="status status-done">実装済</span></td></tr>
+</table>
+
+<h3>4-3. 運営スクリプト（npm run）</h3>
+<table>
+  <tr><th width="220">コマンド</th><th>説明</th></tr>
+  <tr><td>npm run import:places</td><td>Google Places API から神戸の店舗を Supabase に一括インポート</td></tr>
+  <tr><td>npm run import:dry</td><td>ドライラン（DB 書き込みなしで確認）</td></tr>
+  <tr><td>npm run import:cost</td><td>API コスト見積もり表示</td></tr>
+  <tr><td>npm run enrich</td><td>既存店舗データを AI で補完（vibe_tags 等）</td></tr>
+  <tr><td>npm run enrich:all</td><td>全店舗を強制上書き補完</td></tr>
+  <tr><td>npm run instagram</td><td>Instagram ハンドルを自動更新</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════
+     5. API エンドポイント
+══════════════════════════════════════════════ -->
+<h2>5. API エンドポイント一覧</h2>
+<table>
+  <tr><th width="80">メソッド</th><th width="240">パス</th><th>説明</th><th width="100">認証</th></tr>
+  <tr><td>POST</td><td>/api/chat</td><td>AI チャット（Claude 呼び出し）</td><td>レート制限のみ</td></tr>
+  <tr><td>GET</td><td>/api/restaurants</td><td>店舗一覧（フィルター・ページング対応）</td><td>なし（公開）</td></tr>
+  <tr><td>GET</td><td>/api/restaurants/[id]</td><td>店舗詳細取得</td><td>なし（公開）</td></tr>
+  <tr><td>GET/POST</td><td>/api/spots</td><td>スポット取得・クリックトラッキング</td><td>なし（公開）</td></tr>
+  <tr><td>GET</td><td>/api/photo</td><td>Google Places 写真プロキシ</td><td>なし（公開）</td></tr>
+  <tr><td>POST</td><td>/api/auth</td><td>ユーザー認証（signup / login）</td><td>なし</td></tr>
+  <tr><td>GET/POST/PUT/DELETE</td><td>/api/favorites</td><td>お気に入り管理</td><td>Bearer Token</td></tr>
+  <tr><td>GET/POST</td><td>/api/visits</td><td>訪問記録管理</td><td>Bearer Token</td></tr>
+  <tr><td>GET/POST</td><td>/api/follow</td><td>フォロー操作</td><td>Bearer Token</td></tr>
+  <tr><td>GET</td><td>/api/followers/[userId]</td><td>フォロワー一覧</td><td>Bearer Token</td></tr>
+  <tr><td>GET</td><td>/api/following/[userId]</td><td>フォロー中一覧</td><td>Bearer Token</td></tr>
+  <tr><td>POST</td><td>/api/block</td><td>ブロック操作</td><td>Bearer Token</td></tr>
+  <tr><td>GET</td><td>/api/profile/[userId]</td><td>プロフィール取得</td><td>Bearer Token</td></tr>
+  <tr><td>GET</td><td>/api/feed</td><td>フィード取得</td><td>Bearer Token</td></tr>
+  <tr><td>POST</td><td>/api/admin/auth</td><td>管理者ログイン</td><td>なし（認証エンドポイント）</td></tr>
+  <tr><td>GET/POST</td><td>/api/admin/spots</td><td>スポット管理</td><td><strong>ADMIN_PASSWORD 必須</strong></td></tr>
+  <tr><td>PUT/DELETE</td><td>/api/admin/spots/[id]</td><td>スポット更新・削除</td><td><strong>ADMIN_PASSWORD 必須</strong></td></tr>
+  <tr><td>GET</td><td>/api/admin/analytics</td><td>アナリティクス</td><td><strong>ADMIN_PASSWORD 必須</strong></td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════
+     6. データベース構造
+══════════════════════════════════════════════ -->
+<h2>6. データベース構造（Supabase）</h2>
+<table>
+  <tr><th width="200">テーブル名</th><th>概要</th><th width="80">件数</th></tr>
+  <tr><td>restaurants</td><td>主テーブル。90店舗の立ち飲み店データ。tachinomi_type・instagram_handle・scoring 等を含む</td><td>約90件</td></tr>
+  <tr><td>spots</td><td>旧形式スポットテーブル（フォールバック用）</td><td>—</td></tr>
+  <tr><td>spot_translations</td><td>多言語翻訳（ja / en / zh-TW / zh-CN / ko）</td><td>—</td></tr>
+  <tr><td>conversations</td><td>AI チャット会話ログ</td><td>—</td></tr>
+  <tr><td>messages</td><td>会話内メッセージ（user / assistant）</td><td>—</td></tr>
+  <tr><td>clicks</td><td>店舗クリックトラッキング</td><td>—</td></tr>
+  <tr><td>spot_analytics</td><td>スポット別集計ビュー</td><td>—</td></tr>
+  <tr><td>user_profiles</td><td>ユーザープロフィール</td><td>—</td></tr>
+  <tr><td>blocks</td><td>ユーザーブロック関係</td><td>—</td></tr>
+</table>
+
+<h3>restaurants テーブル 主要カラム</h3>
+<table>
+  <tr><th width="220">カラム名</th><th>型</th><th>説明</th></tr>
+  <tr><td>id</td><td>UUID</td><td>主キー</td></tr>
+  <tr><td>name</td><td>TEXT</td><td>店舗名</td></tr>
+  <tr><td>area</td><td>ENUM</td><td>sannomiya / motomachi / surroundings</td></tr>
+  <tr><td>tachinomi_type</td><td>TEXT</td><td>kakuuchi / wine / seafood / yakitori 等</td></tr>
+  <tr><td>budget_min / max</td><td>INTEGER</td><td>予算範囲（円）</td></tr>
+  <tr><td>rating</td><td>FLOAT</td><td>Google 評価</td></tr>
+  <tr><td>vibe_tags</td><td>TEXT[]</td><td>雰囲気タグ配列（local / casual / lively 等）</td></tr>
+  <tr><td>solo_friendly_score</td><td>INTEGER</td><td>ソロ利用しやすさ（1-5）</td></tr>
+  <tr><td>foreigner_friendly_score</td><td>INTEGER</td><td>外国人対応度（1-5）</td></tr>
+  <tr><td>instagram_handle</td><td>TEXT</td><td>Instagram アカウント</td></tr>
+  <tr><td>is_new_open</td><td>BOOLEAN</td><td>新規オープンフラグ</td></tr>
+  <tr><td>priority_score</td><td>INTEGER</td><td>表示優先度（0-100）</td></tr>
+  <tr><td>is_published</td><td>BOOLEAN</td><td>公開フラグ</td></tr>
+  <tr><td>internal_notes</td><td>TEXT</td><td>⚠ 内部メモ（AI のみ参照・公開 API 非公開）</td></tr>
+  <tr><td>lat / lng</td><td>FLOAT</td><td>緯度経度</td></tr>
+  <tr><td>photo_reference</td><td>TEXT</td><td>Google Places 写真参照 ID</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════
+     7. セキュリティ設計
+══════════════════════════════════════════════ -->
+<h2>7. セキュリティ設計</h2>
+
+<h3>7-1. 実装済みセキュリティ対策</h3>
+
+<div class="sec-item ok">
+  <div class="sec-icon">🔐</div>
+  <div>
+    <div class="sec-title">API キーの完全サーバー隔離</div>
+    <div class="sec-desc">
+      <code class="sec-code">ANTHROPIC_API_KEY</code>・<code class="sec-code">SUPABASE_SERVICE_ROLE_KEY</code>・<code class="sec-code">GOOGLE_MAPS_API_KEY</code>・<code class="sec-code">ADMIN_PASSWORD</code> は <code class="sec-code">NEXT_PUBLIC_</code> プレフィックスなし。ブラウザバンドルに含まれず、サーバーサイドのみでアクセス可能。
+    </div>
+  </div>
+</div>
+
+<div class="sec-item ok">
+  <div class="sec-icon">🗂️</div>
+  <div>
+    <div class="sec-title">Supabase クライアントの分離</div>
+    <div class="sec-desc">
+      <code class="sec-code">src/lib/supabase.ts</code> は anon key のみ（クライアント / サーバー共通）。<code class="sec-code">src/lib/supabase-server.ts</code> は SERVICE_ROLE_KEY を持つ admin クライアントのみ（サーバー専用 API ルートからのみ import）。誤って CLIENT コンポーネントが admin クライアントを import できない構造。
+    </div>
+  </div>
+</div>
+
+<div class="sec-item ok">
+  <div class="sec-icon">🚫</div>
+  <div>
+    <div class="sec-title">internal_notes の公開 API 除外</div>
+    <div class="sec-desc">
+      店舗の内部メモ（営業交渉メモ・スタッフ情報等）は <code class="sec-code">GET /api/restaurants</code> および <code class="sec-code">GET /api/restaurants/[id]</code> の SELECT 句から除外。Claude へのシステムプロンプトのみで使用し、レスポンス JSON には含まれない。
+    </div>
+  </div>
+</div>
+
+<div class="sec-item ok">
+  <div class="sec-icon">⏱️</div>
+  <div>
+    <div class="sec-title">AI チャット API レート制限</div>
+    <div class="sec-desc">
+      <code class="sec-code">POST /api/chat</code> に IP ベースレート制限を実装。1IP あたり 1分間 10リクエストまで。超過時は <code class="sec-code">429 Too Many Requests</code> + <code class="sec-code">Retry-After</code> ヘッダーを返す。Anthropic API コストの暴走を防ぐ。<br>
+      実装: <code class="sec-code">src/lib/rate-limit.ts</code>（インメモリ）
+    </div>
+  </div>
+</div>
+
+<div class="sec-item ok">
+  <div class="sec-icon">🔒</div>
+  <div>
+    <div class="sec-title">Admin API 認証 + ブルートフォース保護</div>
+    <div class="sec-desc">
+      <code class="sec-code">/api/admin/spots</code>・<code class="sec-code">/api/admin/analytics</code>・<code class="sec-code">/api/admin/spots/[id]</code> は全て <code class="sec-code">Authorization: Bearer &lt;ADMIN_PASSWORD&gt;</code> ヘッダーが必要。ヘッダーなし / 不正トークンは <code class="sec-code">401 Unauthorized</code>。加えて 1IP あたり 1分 10回のレート制限でブルートフォース攻撃を防止。<br>
+      実装: <code class="sec-code">src/lib/admin-auth.ts</code>
+    </div>
+  </div>
+</div>
+
+<div class="sec-item ok">
+  <div class="sec-icon">📷</div>
+  <div>
+    <div class="sec-title">Google Maps API サーバープロキシ</div>
+    <div class="sec-desc">
+      <code class="sec-code">GET /api/photo?ref={photo_reference}</code> が Google Places 写真を取得してブラウザに返す。Google Maps API キーはブラウザに一切送信されない。レスポンスに <code class="sec-code">Cache-Control: public, max-age=86400</code> を付与しコストも最適化。
+    </div>
+  </div>
+</div>
+
+<div class="sec-item ok">
+  <div class="sec-icon">🙈</div>
+  <div>
+    <div class="sec-title">.env.local の Git 管理除外</div>
+    <div class="sec-desc">
+      <code class="sec-code">.gitignore</code> に <code class="sec-code">.env.local</code>・<code class="sec-code">.env.*.local</code>・<code class="sec-code">.env</code> を明記。API キーがリポジトリにコミットされない。
+    </div>
+  </div>
+</div>
+
+<div class="sec-item warn">
+  <div class="sec-icon">⚠️</div>
+  <div>
+    <div class="sec-title">【今後の強化推奨】レート制限のサーバーレス対応</div>
+    <div class="sec-desc">
+      現在のレート制限はインメモリ実装。Vercel のサーバーレス環境ではインスタンスごとにメモリが独立するため、厳密な制限は保証されない。本番でより厳格な制限が必要な場合は <strong>Upstash Redis + @upstash/ratelimit</strong> の導入を推奨。
+    </div>
+  </div>
+</div>
+
+<div class="sec-item warn">
+  <div class="sec-icon">⚠️</div>
+  <div>
+    <div class="sec-title">【今後の強化推奨】Supabase RLS ポリシー設定</div>
+    <div class="sec-desc">
+      現在の公開 API は SERVICE_ROLE_KEY を使用（RLS バイパス）。SELECT するカラムを明示的に制限することで対処済み。今後 anon key + RLS ポリシーへ移行することでより安全な設計になる。
+    </div>
+  </div>
+</div>
+
+<h3>7-2. セキュリティアーキテクチャ図</h3>
+<div class="tree">
+<span class="dir">ブラウザ（クライアント）</span><br>
+  ├── <span class="file">NEXT_PUBLIC_SUPABASE_URL</span> &nbsp;<span class="note">← 公開OK</span><br>
+  ├── <span class="file">NEXT_PUBLIC_SUPABASE_ANON_KEY</span> &nbsp;<span class="note">← 公開OK（RLSで保護）</span><br>
+  └── <span class="note">※ それ以外のキーは一切届かない</span><br><br>
+<span class="dir">Next.js サーバー（API Routes）</span><br>
+  ├── <span class="file">ANTHROPIC_API_KEY</span> &nbsp;<span class="note">← サーバーのみ</span><br>
+  ├── <span class="file">SUPABASE_SERVICE_ROLE_KEY</span> &nbsp;<span class="note">← サーバーのみ</span><br>
+  ├── <span class="file">GOOGLE_MAPS_API_KEY</span> &nbsp;<span class="note">← サーバーのみ</span><br>
+  ├── <span class="file">ADMIN_PASSWORD</span> &nbsp;<span class="note">← サーバーのみ</span><br>
+  ├── <span class="file">/api/chat</span> → Claude API &nbsp;<span class="note">（レート制限付き）</span><br>
+  ├── <span class="file">/api/photo</span> → Google Places &nbsp;<span class="note">（プロキシ）</span><br>
+  └── <span class="file">/api/admin/*</span> &nbsp;<span class="note">（Bearer Token 認証必須）</span>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     8. ファイル構成
+══════════════════════════════════════════════ -->
+<h2>8. ファイル構成</h2>
+<div class="tree">
+<span class="dir">kobe-guide/</span><br>
+├── <span class="file">src/app/</span><br>
+│   ├── <span class="file">page.tsx</span> &nbsp;<span class="note">AIチャット（トップ）</span><br>
+│   ├── <span class="file">stores/page.tsx</span> &nbsp;<span class="note">店舗一覧・検索・マップ</span><br>
+│   ├── <span class="file">map/page.tsx</span> &nbsp;<span class="note">全体マップビュー</span><br>
+│   ├── <span class="file">admin/page.tsx</span> &nbsp;<span class="note">管理画面（認証付き）</span><br>
+│   ├── <span class="file">auth/</span> &nbsp;<span class="note">ログイン・サインアップ</span><br>
+│   ├── <span class="file">profile/</span> &nbsp;<span class="note">プロフィールページ</span><br>
+│   ├── <span class="file">feed/</span> &nbsp;<span class="note">フィードページ</span><br>
+│   └── <span class="file">api/</span> &nbsp;<span class="note">API ルート群</span><br>
+├── <span class="file">src/lib/</span><br>
+│   ├── <span class="file">supabase.ts</span> &nbsp;<span class="note">anon key クライアント（公開側）</span><br>
+│   ├── <span class="file">supabase-server.ts</span> &nbsp;<span class="note">SERVICE_ROLE_KEY クライアント（サーバー専用）</span><br>
+│   ├── <span class="file">rate-limit.ts</span> &nbsp;<span class="note">IP ベースレート制限</span><br>
+│   ├── <span class="file">admin-auth.ts</span> &nbsp;<span class="note">Admin 認証ヘルパー</span><br>
+│   ├── <span class="file">prompts.ts</span> &nbsp;<span class="note">Claude プロンプト生成</span><br>
+│   └── <span class="file">googlePlaces.ts</span> &nbsp;<span class="note">Places API クライアント</span><br>
+├── <span class="file">src/components/</span> &nbsp;<span class="note">UI コンポーネント群</span><br>
+├── <span class="file">src/hooks/</span> &nbsp;<span class="note">カスタムフック（useAuth / useFavorites 等）</span><br>
+├── <span class="file">src/types/</span> &nbsp;<span class="note">TypeScript 型定義</span><br>
+├── <span class="file">supabase/</span> &nbsp;<span class="note">SQL スキーマ・シードデータ</span><br>
+│   ├── <span class="file">restaurants.sql</span> &nbsp;<span class="note">テーブル定義</span><br>
+│   └── <span class="file">tachinomi_seed.sql</span> &nbsp;<span class="note">90店舗 INSERT 文</span><br>
+├── <span class="file">scripts/</span> &nbsp;<span class="note">データ管理スクリプト</span><br>
+├── <span class="file">.env.local</span> &nbsp;<span class="note">⚠ 環境変数（Git 管理外）</span><br>
+└── <span class="file">.gitignore</span> &nbsp;<span class="note">.env.local を除外設定済み</span>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     9. 起動・デプロイ手順
+══════════════════════════════════════════════ -->
+<h2>9. 起動・デプロイ手順</h2>
+
+<h3>ローカル起動（設定済み）</h3>
+<div class="env-block">
+  <span class="comment"># 開発サーバー起動</span><br>
+  npm run dev<br><br>
+  <span class="comment"># → http://localhost:3000（または 3002）で起動</span>
+</div>
+
+<h3>Vercel デプロイ手順</h3>
+<table>
+  <tr><th width="40">手順</th><th>操作</th><th>状態</th></tr>
+  <tr><td>1</td><td>vercel.com でプロジェクト作成・kobe-guide を連携</td><td><span class="status status-done">完了</span></td></tr>
+  <tr><td>2</td><td>Vercel ダッシュボード → Settings → Environment Variables に .env.local の全キーを登録</td><td><span class="status status-done">完了</span></td></tr>
+  <tr><td>3</td><td>npx vercel --prod でデプロイ</td><td><span class="status status-done">完了</span></td></tr>
+</table>
+
+<div style="margin-top: 48px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 11px; color: #999;">
+  神戸立ち飲みマップ 仕様書 v1.0 &nbsp;|&nbsp; 2026-04-14 &nbsp;|&nbsp; NexusAI
+</div>
+
+</body>
+</html>

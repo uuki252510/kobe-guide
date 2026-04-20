@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>神戸立ち飲みマップ — Pitch Deck</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:  #0d1b2a;
+  --gold:  #c8970a;
+  --amber: #e4a820;
+  --light: #f5f0e8;
+  --gray:  #8899aa;
+  --white: #ffffff;
+}
+
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic Medium', 'Meiryo', sans-serif;
+  background: #1a1a2e;
+  color: var(--white);
+}
+
+/* ── Slide container ── */
+.slide {
+  width: 960px;
+  min-height: 540px;
+  margin: 0 auto 4px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ── Slide themes ── */
+.dark  { background: var(--navy); }
+.gold-bg { background: linear-gradient(135deg, #1a1000 0%, #3d2800 100%); }
+.light-bg { background: #f8f5ef; color: var(--navy); }
+.accent-bg { background: linear-gradient(135deg, var(--navy) 0%, #1a2f4a 100%); }
+
+/* ── Typography ── */
+.slide-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+h1 { font-size: 52px; font-weight: 900; line-height: 1.1; }
+h2 { font-size: 36px; font-weight: 800; line-height: 1.2; }
+h3 { font-size: 22px; font-weight: 700; }
+.sub { font-size: 18px; color: var(--gray); line-height: 1.6; margin-top: 16px; }
+.en  { font-size: 14px; letter-spacing: 1px; color: var(--gold); margin-top: 6px; }
+
+/* ── Layout helpers ── */
+.pad    { padding: 60px 80px; }
+.pad-sm { padding: 44px 80px; }
+.cols   { display: grid; gap: 40px; }
+.cols-2 { grid-template-columns: 1fr 1fr; }
+.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.cols-60-40 { grid-template-columns: 60fr 40fr; }
+
+/* ── Decorative ── */
+.gold-line {
+  width: 60px; height: 4px;
+  background: var(--gold);
+  border-radius: 2px;
+  margin: 20px 0;
+}
+.gold-line.center { margin: 20px auto; }
+
+.slide-num {
+  position: absolute;
+  bottom: 24px; right: 36px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.2);
+  letter-spacing: 1px;
+}
+.slide-num.dark-num { color: rgba(0,0,0,0.15); }
+
+/* ── SLIDE 1: Cover ── */
+.cover-bg {
+  background: var(--navy);
+  position: relative;
+}
+.cover-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(200,151,10,0.15) 0%, transparent 70%);
+}
+.cover-content { position: relative; z-index: 1; }
+.cover-title { font-size: 58px; font-weight: 900; line-height: 1.05; }
+.cover-title .accent { color: var(--gold); }
+.cover-url {
+  display: inline-block;
+  margin-top: 32px;
+  padding: 10px 24px;
+  border: 1px solid rgba(200,151,10,0.5);
+  border-radius: 24px;
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.big-anchor {
+  position: absolute;
+  right: 80px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 160px;
+  opacity: 0.05;
+  user-select: none;
+}
+
+/* ── Problem cards ── */
+.prob-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 24px 28px;
+}
+.prob-card .icon { font-size: 32px; margin-bottom: 12px; }
+.prob-card h3 { font-size: 16px; margin-bottom: 8px; }
+.prob-card p  { font-size: 13px; color: var(--gray); line-height: 1.6; }
+
+/* ── Solution ── */
+.sol-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sol-item:last-child { border-bottom: none; }
+.sol-num {
+  width: 40px; height: 40px;
+  background: var(--gold);
+  color: var(--navy);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 18px;
+  flex-shrink: 0;
+}
+.sol-body h3 { font-size: 17px; margin-bottom: 6px; }
+.sol-body p  { font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+/* ── Product screenshots ── */
+.screen-box {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(200,151,10,0.3);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+}
+.screen-box .screen-icon { font-size: 48px; margin-bottom: 12px; }
+.screen-box h3 { font-size: 16px; color: var(--gold); margin-bottom: 8px; }
+.screen-box p  { font-size: 12px; color: var(--gray); line-height: 1.6; }
+
+/* ── Market ── */
+.market-num {
+  font-size: 52px;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+}
+.market-label {
+  font-size: 14px;
+  color: var(--gray);
+  margin-top: 4px;
+}
+.market-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+/* ── Business model ── */
+.biz-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 18px 24px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.biz-row.tier1 { background: rgba(200,151,10,0.15); border: 1px solid rgba(200,151,10,0.4); }
+.biz-row.tier2 { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
+.biz-row.tier3 { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+.biz-icon { font-size: 28px; }
+.biz-body { flex: 1; }
+.biz-body h3 { font-size: 16px; margin-bottom: 3px; }
+.biz-body p  { font-size: 12px; color: var(--gray); }
+.biz-price { font-size: 20px; font-weight: 800; color: var(--gold); text-align: right; }
+.biz-price small { display: block; font-size: 11px; color: var(--gray); font-weight: 400; }
+
+/* ── Traction ── */
+.traction-num {
+  font-size: 64px;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+}
+.traction-card {
+  text-align: center;
+  padding: 32px 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+}
+.traction-card .label { font-size: 13px; color: var(--gray); margin-top: 8px; }
+.traction-card .note  { font-size: 11px; color: rgba(200,151,10,0.8); margin-top: 4px; }
+
+/* ── Tech stack ── */
+.tech-item {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tech-item .icon { font-size: 24px; }
+.tech-item .name { font-size: 14px; font-weight: 700; }
+.tech-item .desc { font-size: 11px; color: var(--gray); margin-top: 2px; }
+
+/* ── Roadmap ── */
+.road-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.road-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.road-dot.done    { background: var(--gold); }
+.road-dot.soon    { background: rgba(200,151,10,0.4); border: 2px solid var(--gold); }
+.road-dot.future  { background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); }
+.road-line {
+  width: 2px;
+  background: rgba(255,255,255,0.1);
+  margin-left: 6px;
+  height: 32px;
+}
+.road-body h3 { font-size: 15px; margin-bottom: 4px; }
+.road-body p  { font-size: 12px; color: var(--gray); }
+.road-tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.road-tag.done   { background: rgba(200,151,10,0.2); color: var(--gold); }
+.road-tag.q2     { background: rgba(100,200,100,0.15); color: #6dc06d; }
+.road-tag.q3     { background: rgba(100,150,255,0.15); color: #7eb0ff; }
+.road-tag.q4     { background: rgba(200,100,200,0.15); color: #d088d0; }
+
+/* ── Ask ── */
+.ask-big {
+  font-size: 80px;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+}
+.use-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.use-item:last-child { border-bottom: none; }
+.use-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; }
+.use-bar { height: 100%; background: var(--gold); border-radius: 3px; }
+.use-label { width: 160px; font-size: 13px; }
+.use-pct   { width: 50px; text-align: right; font-size: 14px; font-weight: 700; color: var(--gold); }
+
+/* ── Contact / Close ── */
+.close-bg {
+  background: linear-gradient(135deg, var(--navy) 0%, #0a1520 100%);
+  position: relative;
+}
+.close-bg::before {
+  content: '⚓';
+  position: absolute;
+  font-size: 300px;
+  opacity: 0.03;
+  bottom: -40px;
+  right: 60px;
+}
+
+/* ── Print / PDF ── */
+@media print {
+  body { background: white; }
+  .slide { page-break-after: always; margin: 0; }
+  .slide:last-child { page-break-after: avoid; }
+}
+@page { size: 960px 540px; margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     SLIDE 1: COVER
+══════════════════════════════════ -->
+<div class="slide cover-bg pad">
+  <div class="big-anchor">⚓</div>
+  <div class="cover-content">
+    <div class="slide-tag">Investor Pitch Deck — 2026</div>
+    <div class="cover-title">
+      神戸<span class="accent">立ち飲み</span><br>マップ
+    </div>
+    <div style="font-size:16px; color:var(--gray); margin-top:16px; letter-spacing:1px;">
+      Kobe's AI-Powered Standing Bar Guide
+    </div>
+    <div class="gold-line" style="margin-top:28px;"></div>
+    <div style="font-size:15px; color:rgba(255,255,255,0.7); margin-top:20px; line-height:1.8;">
+      AIチャットで「今夜どこ行く？」に答える<br>
+      神戸・三宮〜元町エリア特化の立ち飲み発見サービス
+    </div>
+    <div class="cover-url">kobe-guide.vercel.app</div>
+  </div>
+  <div class="slide-num">01 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 2: PROBLEM
+══════════════════════════════════ -->
+<div class="slide dark pad-sm">
+  <div class="slide-tag">Problem</div>
+  <h2>神戸の「立ち飲み文化」は<br>まだ誰にも届いていない</h2>
+  <div class="gold-line"></div>
+  <div class="cols cols-3" style="margin-top:32px;">
+    <div class="prob-card">
+      <div class="icon">🗺️</div>
+      <h3>情報が散在</h3>
+      <p>神戸の立ち飲み情報はSNS・食べログ・口コミに分散。「今夜どこ行けばいい？」に答えるサービスが存在しない。</p>
+    </div>
+    <div class="prob-card">
+      <div class="icon">🌏</div>
+      <h3>インバウンド壁</h3>
+      <p>訪日外国人は言語バリアで立ち飲み文化に入れない。看板も読めず、店員とも話せず素通りしてしまう。</p>
+    </div>
+    <div class="prob-card">
+      <div class="icon">📉</div>
+      <h3>店舗の集客難</h3>
+      <p>小規模立ち飲み店はSNS運用に時間を割けない。広告費をかけられず新規顧客獲得に苦しんでいる。</p>
+    </div>
+  </div>
+  <div class="slide-num">02 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 3: SOLUTION
+══════════════════════════════════ -->
+<div class="slide accent-bg pad">
+  <div class="slide-tag">Solution</div>
+  <div class="cols cols-60-40" style="gap:60px; align-items:center;">
+    <div>
+      <h2>AIが神戸の夜の<br>「ナビゲーター」になる</h2>
+      <div class="gold-line"></div>
+      <div style="margin-top:28px;">
+        <div class="sol-item">
+          <div class="sol-num">1</div>
+          <div class="sol-body">
+            <h3>自然言語で探せるAIチャット</h3>
+            <p>「予算2000円で一人でふらっと入れる店」「外国人でも大丈夫な店」を会話で即答。Claude Sonnet 搭載。</p>
+          </div>
+        </div>
+        <div class="sol-item">
+          <div class="sol-num">2</div>
+          <div class="sol-body">
+            <h3>5言語対応（日英中韓）</h3>
+            <p>送ったメッセージの言語を自動検出。インバウンド旅行者が母国語で神戸の立ち飲み文化にアクセスできる。</p>
+          </div>
+        </div>
+        <div class="sol-item">
+          <div class="sol-num">3</div>
+          <div class="sol-body">
+            <h3>マップ + 詳細フィルター</h3>
+            <p>エリア / 予算 / ソロ可 / 新規オープン等でリアルタイム絞り込み。現在地からの距離表示も対応。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:rgba(200,151,10,0.08); border:1px solid rgba(200,151,10,0.3); border-radius:20px; padding:32px; text-align:center;">
+        <div style="font-size:64px; margin-bottom:16px;">🏮</div>
+        <div style="font-size:15px; color:rgba(255,255,255,0.9); line-height:1.8;">
+          「今夜どこ行く？」<br>
+          <span style="color:var(--gold);">AIに聞けば、神戸の夜が開く。</span>
+        </div>
+        <div style="margin-top:20px; font-size:12px; color:var(--gray);">
+          kobe-guide.vercel.app
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">03 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 4: PRODUCT
+══════════════════════════════════ -->
+<div class="slide dark pad-sm">
+  <div class="slide-tag">Product</div>
+  <h2 style="font-size:28px;">3つのコア機能でシームレスな体験</h2>
+  <div class="gold-line"></div>
+  <div class="cols cols-3" style="margin-top:28px; gap:24px;">
+    <div class="screen-box">
+      <div class="screen-icon">🤖</div>
+      <h3>AI チャット</h3>
+      <p>会話するだけでその日の気分・人数・予算に合った立ち飲み店を即レコメンド。内部メモを学習したAIが的確に案内。</p>
+      <div style="margin-top:16px; font-size:11px; color:rgba(200,151,10,0.7);">Claude Sonnet 4.6 搭載</div>
+    </div>
+    <div class="screen-box">
+      <div class="screen-icon">🗂️</div>
+      <h3>店舗一覧 / 検索</h3>
+      <p>エリア・カテゴリ・予算・ソロOK・NEW等の多彩なフィルター。リスト表示とマップ表示をワンタップ切替。</p>
+      <div style="margin-top:16px; font-size:11px; color:rgba(200,151,10,0.7);">90店舗 登録済み</div>
+    </div>
+    <div class="screen-box">
+      <div class="screen-icon">🗺️</div>
+      <h3>インタラクティブマップ</h3>
+      <p>Leaflet ベースの地図に店舗ピンを表示。現在地から近い順にソート。Google Maps へのリンクも完備。</p>
+      <div style="margin-top:16px; font-size:11px; color:rgba(200,151,10,0.7);">現在地取得対応</div>
+    </div>
+  </div>
+  <div style="margin-top:24px; text-align:center; font-size:13px; color:var(--gray);">
+    ▶ ライブデモ:
+    <span style="color:var(--gold);">kobe-guide.vercel.app</span>
+  </div>
+  <div class="slide-num">04 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 5: MARKET SIZE
+══════════════════════════════════ -->
+<div class="slide gold-bg pad">
+  <div class="slide-tag">Market Opportunity</div>
+  <h2>巨大な市場 × ニッチな切り口</h2>
+  <div class="gold-line"></div>
+  <div class="cols cols-3" style="margin-top:32px; gap:24px;">
+    <div class="market-card">
+      <div class="market-num">3,200<span style="font-size:28px;">万人</span></div>
+      <div class="market-label">神戸市への年間観光客数<br><span style="font-size:11px;">（2019年、コロナ前ピーク）</span></div>
+    </div>
+    <div class="market-card">
+      <div class="market-num">500<span style="font-size:28px;">万人+</span></div>
+      <div class="market-label">兵庫県のインバウンド<br><span style="font-size:11px;">訪問者数（年間）</span></div>
+    </div>
+    <div class="market-card">
+      <div class="market-num">5<span style="font-size:28px;">万店+</span></div>
+      <div class="market-label">全国の立ち飲み・角打ち店<br><span style="font-size:11px;">（神戸だけで200店超）</span></div>
+    </div>
+  </div>
+  <div style="margin-top:32px; padding:20px 28px; background:rgba(200,151,10,0.12); border:1px solid rgba(200,151,10,0.3); border-radius:12px;">
+    <div style="display:flex; gap:40px; align-items:center;">
+      <div>
+        <div style="font-size:13px; color:var(--gold); font-weight:700; margin-bottom:4px;">TODAY — 神戸特化</div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.7);">三宮〜元町エリア、立ち飲み専門</div>
+      </div>
+      <div style="font-size:24px; color:var(--gold);">→</div>
+      <div>
+        <div style="font-size:13px; color:var(--gold); font-weight:700; margin-bottom:4px;">NEXT — 関西展開</div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.7);">大阪・京都・奈良へ横展開</div>
+      </div>
+      <div style="font-size:24px; color:var(--gold);">→</div>
+      <div>
+        <div style="font-size:13px; color:var(--gold); font-weight:700; margin-bottom:4px;">FUTURE — 全国 / 海外</div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.7);">日本全国の夜遊びガイドプラットフォーム</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">05 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 6: BUSINESS MODEL
+══════════════════════════════════ -->
+<div class="slide dark pad">
+  <div class="slide-tag">Business Model</div>
+  <div class="cols cols-60-40" style="gap:48px; align-items:center;">
+    <div>
+      <h2 style="font-size:30px;">3層の収益モデルで<br>安定したマネタイズ</h2>
+      <div class="gold-line"></div>
+      <div style="margin-top:28px;">
+        <div class="biz-row tier1">
+          <div class="biz-icon">⭐</div>
+          <div class="biz-body">
+            <h3>プレミアム掲載（店舗向け）</h3>
+            <p>上位表示・写真強化・バッジ・AIレコメンド優先</p>
+          </div>
+          <div class="biz-price">¥5,000〜<small>/月</small></div>
+        </div>
+        <div class="biz-row tier2">
+          <div class="biz-icon">📢</div>
+          <div class="biz-body">
+            <h3>バナー / スポット広告</h3>
+            <p>チャット回答内・一覧ページへのネイティブ広告</p>
+          </div>
+          <div class="biz-price">¥30,000〜<small>/月</small></div>
+        </div>
+        <div class="biz-row tier3">
+          <div class="biz-icon">🤝</div>
+          <div class="biz-body">
+            <h3>観光局 / DMO タイアップ</h3>
+            <p>神戸市・兵庫県観光局との連携コンテンツ</p>
+          </div>
+          <div class="biz-price">応相談</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <div style="background:rgba(200,151,10,0.1); border:1px solid rgba(200,151,10,0.3); border-radius:20px; padding:32px 24px;">
+        <div style="font-size:13px; color:var(--gray); margin-bottom:8px;">掲載店舗 50店時の月次試算</div>
+        <div style="font-size:48px; font-weight:900; color:var(--gold); line-height:1;">¥500,000</div>
+        <div style="font-size:12px; color:var(--gray); margin-top:8px;">/月（MRR想定）</div>
+        <div style="margin-top:24px; font-size:13px; color:rgba(255,255,255,0.6); line-height:1.8; text-align:left;">
+          プレミアム 50店 × ¥5,000 = ¥250,000<br>
+          広告 10枠 × ¥25,000 = ¥250,000
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">06 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 7: TRACTION
+══════════════════════════════════ -->
+<div class="slide accent-bg pad-sm">
+  <div class="slide-tag">Traction</div>
+  <h2 style="font-size:28px;">すでに動いている — MVP 本番稼働中</h2>
+  <div class="gold-line"></div>
+  <div class="cols cols-3" style="margin-top:28px; gap:20px;">
+    <div class="traction-card">
+      <div class="traction-num">90</div>
+      <div class="label">店舗データ登録済み</div>
+      <div class="note">Google Places API で取得・AI補完済み</div>
+    </div>
+    <div class="traction-card">
+      <div class="traction-num">5</div>
+      <div class="label">対応言語</div>
+      <div class="note">日本語・英語・中国語（繁/簡）・韓国語</div>
+    </div>
+    <div class="traction-card">
+      <div class="traction-num">100%</div>
+      <div class="label">MVP 完成度</div>
+      <div class="note">本番デプロイ済み・即デモ可能</div>
+    </div>
+  </div>
+  <div style="margin-top:24px; display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+    <div style="padding:16px 20px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-size:13px;">
+      ✅ &nbsp;AIチャット（Claude Sonnet 4.6）稼働中<br>
+      ✅ &nbsp;店舗一覧・マップ・フィルター実装済み<br>
+      ✅ &nbsp;ユーザー認証・お気に入り・訪問記録
+    </div>
+    <div style="padding:16px 20px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-size:13px;">
+      ✅ &nbsp;管理パネル（店舗管理・アナリティクス）<br>
+      ✅ &nbsp;セキュリティ設計（APIキー完全隔離）<br>
+      ✅ &nbsp;Vercel 本番デプロイ: kobe-guide.vercel.app
+    </div>
+  </div>
+  <div class="slide-num">07 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 8: TECHNOLOGY
+══════════════════════════════════ -->
+<div class="slide dark pad">
+  <div class="slide-tag">Technology</div>
+  <div class="cols cols-60-40" style="gap:48px; align-items:center;">
+    <div>
+      <h2 style="font-size:28px;">最新スタックで<br>スケーラブルに構築</h2>
+      <div class="gold-line"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:24px;">
+        <div class="tech-item">
+          <div class="icon">⚡</div>
+          <div><div class="name">Next.js 16</div><div class="desc">App Router / SSR</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="icon">🤖</div>
+          <div><div class="name">Claude Sonnet 4.6</div><div class="desc">Anthropic API</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="icon">🗄️</div>
+          <div><div class="name">Supabase</div><div class="desc">PostgreSQL + Auth</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="icon">🗺️</div>
+          <div><div class="name">Leaflet</div><div class="desc">インタラクティブマップ</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="icon">🌐</div>
+          <div><div class="name">Google Places</div><div class="desc">店舗データ・写真</div></div>
+        </div>
+        <div class="tech-item">
+          <div class="icon">🚀</div>
+          <div><div class="name">Vercel</div><div class="desc">エッジデプロイ</div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:rgba(200,151,10,0.08); border:1px solid rgba(200,151,10,0.25); border-radius:16px; padding:28px 24px;">
+        <div style="font-size:13px; color:var(--gold); font-weight:700; margin-bottom:16px; letter-spacing:1px;">COMPETITIVE EDGE</div>
+        <div style="font-size:13px; line-height:2; color:rgba(255,255,255,0.8);">
+          🏮 &nbsp;立ち飲み特化 × AI の掛け合わせ<br>
+          🌏 &nbsp;多言語 × インバウンド対応<br>
+          🔐 &nbsp;APIキー完全サーバー隔離設計<br>
+          📊 &nbsp;店舗管理 + アナリティクス一体型<br>
+          ⚡ &nbsp;追加費用ゼロでスケール可能
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">08 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 9: ROADMAP
+══════════════════════════════════ -->
+<div class="slide accent-bg pad">
+  <div class="slide-tag">Roadmap</div>
+  <h2 style="font-size:28px;">神戸から、日本全国の夜へ</h2>
+  <div class="gold-line"></div>
+  <div style="margin-top:28px; display:grid; grid-template-columns:1fr 1fr; gap:32px 48px;">
+    <div>
+      <div style="font-size:12px; color:var(--gold); font-weight:700; letter-spacing:2px; margin-bottom:16px;">2026 Q1-Q2 — 神戸フェーズ</div>
+      <div class="road-item" style="margin-bottom:12px;">
+        <div class="road-dot done"></div>
+        <div class="road-body"><h3>MVP 本番リリース <span class="road-tag done">完了</span></h3><p>AIチャット・店舗一覧・マップ・管理画面</p></div>
+      </div>
+      <div class="road-item" style="margin-bottom:12px;">
+        <div class="road-dot soon"></div>
+        <div class="road-body"><h3>有料掲載開始 <span class="road-tag q2">Q2</span></h3><p>店舗向けプレミアムプラン営業開始</p></div>
+      </div>
+      <div class="road-item">
+        <div class="road-dot soon"></div>
+        <div class="road-body"><h3>SEO強化・集客 <span class="road-tag q2">Q2</span></h3><p>「神戸 立ち飲み」検索上位を狙う</p></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px; color:var(--gold); font-weight:700; letter-spacing:2px; margin-bottom:16px;">2026 Q3-Q4 — 拡張フェーズ</div>
+      <div class="road-item" style="margin-bottom:12px;">
+        <div class="road-dot future"></div>
+        <div class="road-body"><h3>大阪・京都展開 <span class="road-tag q3">Q3</span></h3><p>関西主要都市への横展開・データ収集</p></div>
+      </div>
+      <div class="road-item" style="margin-bottom:12px;">
+        <div class="road-dot future"></div>
+        <div class="road-body"><h3>予約・クーポン機能 <span class="road-tag q3">Q3</span></h3><p>送客手数料モデルの追加</p></div>
+      </div>
+      <div class="road-item">
+        <div class="road-dot future"></div>
+        <div class="road-body"><h3>B2B API提供 <span class="road-tag q4">Q4</span></h3><p>旅行会社・ホテル向けAPIライセンス</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">09 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 10: ASK
+══════════════════════════════════ -->
+<div class="slide dark pad">
+  <div class="slide-tag">Fundraising Ask</div>
+  <div class="cols cols-60-40" style="gap:60px; align-items:center;">
+    <div>
+      <h2 style="font-size:28px;">資金調達</h2>
+      <div class="gold-line"></div>
+      <div class="ask-big" style="margin-top:24px;">TBD</div>
+      <div style="font-size:14px; color:var(--gray); margin-top:8px;">調達金額（検討中）</div>
+      <div style="margin-top:32px;">
+        <div style="font-size:13px; color:var(--gold); font-weight:700; letter-spacing:1px; margin-bottom:16px;">USE OF FUNDS — 資金使途</div>
+        <div class="use-item">
+          <div class="use-label">エンジニア採用</div>
+          <div class="use-bar-wrap"><div class="use-bar" style="width:40%;"></div></div>
+          <div class="use-pct">40%</div>
+        </div>
+        <div class="use-item">
+          <div class="use-label">マーケティング</div>
+          <div class="use-bar-wrap"><div class="use-bar" style="width:30%;"></div></div>
+          <div class="use-pct">30%</div>
+        </div>
+        <div class="use-item">
+          <div class="use-label">関西エリア展開</div>
+          <div class="use-bar-wrap"><div class="use-bar" style="width:20%;"></div></div>
+          <div class="use-pct">20%</div>
+        </div>
+        <div class="use-item">
+          <div class="use-label">インフラ / 運営</div>
+          <div class="use-bar-wrap"><div class="use-bar" style="width:10%;"></div></div>
+          <div class="use-pct">10%</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:rgba(200,151,10,0.08); border:1px solid rgba(200,151,10,0.3); border-radius:20px; padding:32px 24px; text-align:center;">
+        <div style="font-size:13px; color:var(--gray); margin-bottom:20px;">投資家に提供できる価値</div>
+        <div style="font-size:13px; line-height:2.2; color:rgba(255,255,255,0.85); text-align:left;">
+          🏮 &nbsp;日本初の立ち飲み特化 AI ガイド<br>
+          🌏 &nbsp;インバウンド需要回復に完全適合<br>
+          📱 &nbsp;MVP 完成・即スケール可能<br>
+          📈 &nbsp;スモールスタート → 全国展開<br>
+          🔐 &nbsp;技術的参入障壁（AI + ローカル知識）
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">10 / 11</div>
+</div>
+
+<!-- ══════════════════════════════════
+     SLIDE 11: CONTACT
+══════════════════════════════════ -->
+<div class="slide close-bg pad" style="text-align:center; justify-content:center; align-items:center;">
+  <div style="position:relative; z-index:1;">
+    <div class="slide-tag" style="text-align:center;">Contact</div>
+    <h1 style="font-size:48px; line-height:1.1;">
+      神戸の夜を、<br>
+      <span style="color:var(--gold);">一緒に変えましょう。</span>
+    </h1>
+    <div class="gold-line center"></div>
+    <div style="margin-top:28px; font-size:16px; color:rgba(255,255,255,0.7); line-height:2;">
+      🌐 &nbsp;kobe-guide.vercel.app<br>
+    </div>
+    <div style="margin-top:36px; display:inline-block; padding:14px 40px; background:var(--gold); color:var(--navy); border-radius:32px; font-size:15px; font-weight:800; letter-spacing:1px;">
+      ▶ デモを見る — kobe-guide.vercel.app
+    </div>
+  </div>
+  <div class="slide-num">11 / 11</div>
+</div>
+
+</body>
+</html>
