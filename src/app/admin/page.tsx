@@ -3,6 +3,18 @@
 import { useState, useEffect } from 'react';
 import { Spot } from '@/types';
 
+interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  content: string;
+  cover_image: string | null;
+  tags: string[];
+  published: boolean;
+  created_at: string;
+}
+
 // ── Light palette ──────────────────────────────────────────
 const C = {
   bg:        '#FAFAF7',
@@ -88,6 +100,78 @@ function PasswordGate({ onAuth }: { onAuth: (pw: string) => void }) {
           ログイン
         </button>
       </form>
+    </div>
+  );
+}
+
+// ─── Article Modal ─────────────────────────────────────────
+function ArticleModal({
+  article,
+  onClose,
+  onSave,
+}: {
+  article: Partial<Article>;
+  onClose: () => void;
+  onSave: (data: Partial<Article>) => void;
+}) {
+  const [form, setForm] = useState<Partial<Article>>(article);
+  const [tagsInput, setTagsInput] = useState((article.tags ?? []).join(', '));
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', background: C.bg, border: `1px solid ${C.border}`,
+    color: C.textMain, fontSize: 14, borderRadius: 10, padding: '9px 12px', outline: 'none',
+  };
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: 11, fontWeight: 700, color: C.textMute,
+    textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6,
+  };
+
+  const handleSave = () => {
+    onSave({ ...form, tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean) });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto" style={{ background: 'rgba(38,34,32,0.55)' }}>
+      <div className="w-full max-w-xl my-4" style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,0.15)' }}>
+        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: C.textMain }}>{form.id ? '記事を編集' : '新規記事'}</h2>
+          <button onClick={onClose} style={{ color: C.textMute, fontSize: 20, background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+        </div>
+        <div style={{ padding: 24 }} className="space-y-4">
+          <div>
+            <label style={labelStyle}>タイトル</label>
+            <input style={inputStyle} value={form.title ?? ''} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
+          </div>
+          <div>
+            <label style={labelStyle}>スラッグ（URL）例: kobe-tachinomi-guide</label>
+            <input style={inputStyle} value={form.slug ?? ''} onChange={e => setForm(p => ({ ...p, slug: e.target.value }))} />
+          </div>
+          <div>
+            <label style={labelStyle}>概要（SEO用）</label>
+            <textarea rows={2} style={{ ...inputStyle, resize: 'none' }} value={form.description ?? ''} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
+          </div>
+          <div>
+            <label style={labelStyle}>本文（HTML可）</label>
+            <textarea rows={10} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: 13 }} value={form.content ?? ''} onChange={e => setForm(p => ({ ...p, content: e.target.value }))} />
+          </div>
+          <div>
+            <label style={labelStyle}>カバー画像URL</label>
+            <input style={inputStyle} value={form.cover_image ?? ''} onChange={e => setForm(p => ({ ...p, cover_image: e.target.value }))} />
+          </div>
+          <div>
+            <label style={labelStyle}>タグ（カンマ区切り）</label>
+            <input style={inputStyle} value={tagsInput} onChange={e => setTagsInput(e.target.value)} placeholder="観光, 三宮, 初心者向け" />
+          </div>
+          <div className="flex items-center gap-3">
+            <label style={labelStyle}>公開する</label>
+            <input type="checkbox" checked={form.published ?? false} onChange={e => setForm(p => ({ ...p, published: e.target.checked }))} style={{ width: 18, height: 18, accentColor: C.gold }} />
+          </div>
+        </div>
+        <div style={{ padding: '16px 24px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button onClick={onClose} style={{ padding: '9px 18px', border: `1px solid ${C.border}`, background: C.surface, color: C.textSub, borderRadius: 10, fontSize: 13, fontWeight: 600 }}>キャンセル</button>
+          <button onClick={handleSave} style={{ padding: '9px 18px', background: C.gold, color: '#fff', borderRadius: 10, fontSize: 13, fontWeight: 700 }}>保存</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -327,7 +411,9 @@ export default function AdminPage() {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [analytics, setAnalytics] = useState<Record<string, unknown>[]>([]);
   const [modalSpot, setModalSpot] = useState<Partial<Spot> | null>(null);
-  const [tab, setTab] = useState<'spots' | 'analytics'>('spots');
+  const [tab, setTab] = useState<'spots' | 'analytics' | 'articles'>('spots');
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [articleModal, setArticleModal] = useState<Partial<Article> | null>(null);
 
   const adminFetch = (url: string, options: RequestInit = {}) =>
     fetch(url, {
@@ -343,7 +429,35 @@ export default function AdminPage() {
     if (!token) return;
     adminFetch('/api/admin/spots').then(r => r.json()).then(d => setSpots(d.spots || []));
     adminFetch('/api/admin/analytics').then(r => r.json()).then(d => setAnalytics(d.analytics || []));
+    adminFetch('/api/admin/articles').then(r => r.json()).then(d => setArticles(Array.isArray(d) ? d : []));
   }, [token]);
+
+  const handleArticleSave = async (data: Partial<Article>) => {
+    const method = data.id ? 'PATCH' : 'POST';
+    const res = await adminFetch('/api/admin/articles', {
+      method,
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const updated = await adminFetch('/api/admin/articles').then(r => r.json());
+      setArticles(Array.isArray(updated) ? updated : []);
+      setArticleModal(null);
+    }
+  };
+
+  const handleArticleDelete = async (id: string) => {
+    if (!confirm('この記事を削除しますか？')) return;
+    await adminFetch('/api/admin/articles', { method: 'DELETE', body: JSON.stringify({ id }) });
+    setArticles(prev => prev.filter(a => a.id !== id));
+  };
+
+  const toggleArticlePublished = async (a: Article) => {
+    await adminFetch('/api/admin/articles', {
+      method: 'PATCH',
+      body: JSON.stringify({ id: a.id, published: !a.published }),
+    });
+    setArticles(prev => prev.map(x => x.id === a.id ? { ...x, published: !x.published } : x));
+  };
 
   if (!token) return <PasswordGate onAuth={(pw) => setToken(pw)} />;
 
@@ -401,6 +515,7 @@ export default function AdminPage() {
         >
           {([
             { id: 'spots',     label: 'スポット' },
+            { id: 'articles',  label: '記事' },
             { id: 'analytics', label: 'アナリティクス' },
           ] as const).map(t => (
             <button
@@ -501,7 +616,70 @@ export default function AdminPage() {
         )}
 
         {tab === 'analytics' && <AnalyticsPanel analytics={analytics} />}
+
+        {/* Articles Tab */}
+        {tab === 'articles' && (
+          <div>
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => setArticleModal({ published: false, tags: [] })}
+                style={{ padding: '9px 16px', background: C.gold, color: '#fff', borderRadius: 10, fontSize: 13, fontWeight: 700 }}
+              >
+                + 新規記事
+              </button>
+            </div>
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: 'hidden' }}>
+              <table className="w-full" style={{ fontSize: 14 }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${C.border}`, background: C.bg }}>
+                    {['タイトル', 'スラッグ', 'タグ', '公開', '操作'].map(h => (
+                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: C.textMute, textTransform: 'uppercase', letterSpacing: 1 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {articles.map(a => (
+                    <tr key={a.id} style={{ borderBottom: `1px solid ${C.borderSub}` }}>
+                      <td style={{ padding: '12px 16px', color: C.textMain, fontWeight: 600, maxWidth: 240 }}>{a.title}</td>
+                      <td style={{ padding: '12px 16px', color: C.textMute, fontSize: 12 }}>{a.slug}</td>
+                      <td style={{ padding: '12px 16px', color: C.textSub, fontSize: 12 }}>{a.tags?.join(', ')}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <button
+                          onClick={() => toggleArticlePublished(a)}
+                          style={{
+                            padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+                            background: a.published ? C.greenSoft : C.redSoft,
+                            color: a.published ? C.green : C.red,
+                          }}
+                        >
+                          {a.published ? '公開中' : '非公開'}
+                        </button>
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div className="flex gap-2">
+                          <button onClick={() => setArticleModal(a)} style={{ padding: '5px 12px', background: C.surface, border: `1px solid ${C.border}`, color: C.textSub, borderRadius: 7, fontSize: 12, fontWeight: 600 }}>編集</button>
+                          <button onClick={() => handleArticleDelete(a.id)} style={{ padding: '5px 12px', background: C.redSoft, border: 'none', color: C.red, borderRadius: 7, fontSize: 12, fontWeight: 600 }}>削除</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {articles.length === 0 && (
+                    <tr><td colSpan={5} style={{ padding: 32, textAlign: 'center', color: C.textMute }}>記事がありません</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
+
+      {articleModal && (
+        <ArticleModal
+          article={articleModal}
+          onClose={() => setArticleModal(null)}
+          onSave={handleArticleSave}
+        />
+      )}
 
       {modalSpot && (
         <SpotModal
