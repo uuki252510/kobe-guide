@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import { config } from 'dotenv';
+config({ path: '.env.local' });
 
 const supabase = createClient(
-  'https://anmlfdnznmxnancwnyew.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFubWxmZG56bm14bmFuY3dueWV3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDIwOTI3NiwiZXhwIjoyMDg5Nzg1Mjc2fQ.by8nMn7xDXMoHyvpXQ7r_ybPmH_GEere5wTvHPC1P1U'
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 const articles = [
