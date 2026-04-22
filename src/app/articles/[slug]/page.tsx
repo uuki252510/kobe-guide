@@ -75,7 +75,7 @@ export default function ArticleDetailPage() {
             {new Date(article.created_at).toLocaleDateString('ja-JP')}
           </p>
           <div
-            className="prose prose-sm max-w-none text-harbor-800"
+            className="prose prose-stone max-w-none prose-headings:font-bold prose-headings:text-harbor-900 prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-3 prose-h3:text-base prose-h3:mt-6 prose-p:text-harbor-700 prose-p:leading-relaxed prose-li:text-harbor-700 prose-strong:text-harbor-900 prose-ul:my-3"
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
         </article>
