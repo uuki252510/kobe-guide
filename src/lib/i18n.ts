@@ -1,7 +1,7 @@
 import type { UILang } from '@/hooks/useUILang';
 
 type Translations = {
-  nav: { guide: string; map: string; list: string; feed: string; mypage: string; login: string };
+  nav: { guide: string; map: string; list: string; feed: string; articles: string; mypage: string; login: string };
   sheet: { viewDetails: string; addToCourse: string; added: string; nearby: string; nearbyLabel: string };
   chat: {
     placeholder: string; popular: string; thinking: string;
@@ -16,7 +16,7 @@ type Translations = {
 
 const t: Record<UILang, Translations> = {
   ja: {
-    nav: { guide: '案内', map: '地図', list: '一覧', feed: 'フィード', mypage: 'マイページ', login: 'ログイン' },
+    nav: { guide: '案内', map: '地図', list: '一覧', feed: 'フィード', articles: '記事', mypage: 'マイページ', login: 'ログイン' },
     sheet: { viewDetails: '詳細を見る', addToCourse: 'コース', added: '追加済', nearby: 'NEARBY', nearbyLabel: '近くの銘店' },
     chat: {
       placeholder: '気分や予算を教えてください…', popular: 'よく聞かれること', thinking: '考え中',
@@ -30,7 +30,7 @@ const t: Record<UILang, Translations> = {
     type: { tachinomi: '立ち飲み', kakuuchi: '角打ち', yakitori: '焼鳥', seafood: '海鮮', wine: 'ワイン', italian: 'イタリアン', hormones: 'ホルモン', bar: 'バー' },
   },
   en: {
-    nav: { guide: 'Guide', map: 'Map', list: 'List', feed: 'Feed', mypage: 'My Page', login: 'Login' },
+    nav: { guide: 'Guide', map: 'Map', list: 'List', feed: 'Feed', articles: 'Articles', mypage: 'My Page', login: 'Login' },
     sheet: { viewDetails: 'View Details', addToCourse: 'Add', added: 'Added', nearby: 'NEARBY', nearbyLabel: 'Nearby spots' },
     chat: {
       placeholder: 'Tell me your mood or budget…', popular: 'Popular questions', thinking: 'Thinking…',
@@ -44,7 +44,7 @@ const t: Record<UILang, Translations> = {
     type: { tachinomi: 'Standing bar', kakuuchi: 'Kakuuchi', yakitori: 'Yakitori', seafood: 'Seafood', wine: 'Wine', italian: 'Italian', hormones: 'Hormone', bar: 'Bar' },
   },
   'zh-TW': {
-    nav: { guide: 'AI導覽', map: '地圖', list: '列表', feed: '動態', mypage: '我的頁面', login: '登入' },
+    nav: { guide: 'AI導覽', map: '地圖', list: '列表', feed: '動態', articles: '文章', mypage: '我的頁面', login: '登入' },
     sheet: { viewDetails: '查看詳情', addToCourse: '加入', added: '已加入', nearby: 'NEARBY', nearbyLabel: '附近名店' },
     chat: {
       placeholder: '請告訴我您的心情或預算…', popular: '常見問題', thinking: '思考中',
@@ -58,7 +58,7 @@ const t: Record<UILang, Translations> = {
     type: { tachinomi: '立飲店', kakuuchi: '角打', yakitori: '燒鳥', seafood: '海鮮', wine: '葡萄酒', italian: '義式', hormones: '內臟', bar: '酒吧' },
   },
   'zh-CN': {
-    nav: { guide: 'AI导览', map: '地图', list: '列表', feed: '动态', mypage: '我的页面', login: '登录' },
+    nav: { guide: 'AI导览', map: '地图', list: '列表', feed: '动态', articles: '文章', mypage: '我的页面', login: '登录' },
     sheet: { viewDetails: '查看详情', addToCourse: '加入', added: '已加入', nearby: 'NEARBY', nearbyLabel: '附近名店' },
     chat: {
       placeholder: '请告诉我您的心情或预算…', popular: '常见问题', thinking: '思考中',
@@ -72,7 +72,7 @@ const t: Record<UILang, Translations> = {
     type: { tachinomi: '立饮店', kakuuchi: '角打', yakitori: '烤鸡肉串', seafood: '海鲜', wine: '葡萄酒', italian: '意式', hormones: '内脏', bar: '酒吧' },
   },
   ko: {
-    nav: { guide: 'AI 안내', map: '지도', list: '목록', feed: '피드', mypage: '마이페이지', login: '로그인' },
+    nav: { guide: 'AI 안내', map: '지도', list: '목록', feed: '피드', articles: '기사', mypage: '마이페이지', login: '로그인' },
     sheet: { viewDetails: '상세보기', addToCourse: '코스', added: '추가됨', nearby: 'NEARBY', nearbyLabel: '근처 명소' },
     chat: {
       placeholder: '기분이나 예산을 알려주세요…', popular: '자주 묻는 것', thinking: '생각 중',

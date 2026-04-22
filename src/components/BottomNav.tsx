@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquare, Map, List, Rss, User } from 'lucide-react';
+import { MessageSquare, Map, List, BookOpen, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUILang } from '@/hooks/useUILang';
 import { useT } from '@/lib/i18n';
@@ -23,10 +23,10 @@ export default function BottomNav({ courseCount = 0 }: Props) {
   const tr = useT(lang);
 
   const tabs = [
-    { href: '/',       icon: MessageSquare, label: tr.nav.guide },
-    { href: '/map',    icon: Map,           label: tr.nav.map },
-    { href: '/stores', icon: List,          label: tr.nav.list },
-    { href: '/feed',   icon: Rss,           label: tr.nav.feed },
+    { href: '/',          icon: MessageSquare, label: tr.nav.guide },
+    { href: '/map',       icon: Map,           label: tr.nav.map },
+    { href: '/stores',    icon: List,          label: tr.nav.list },
+    { href: '/articles',  icon: BookOpen,      label: tr.nav.articles },
     {
       href: user ? `/users/${user.id}` : '/auth',
       icon: User,
