@@ -198,6 +198,8 @@ export default function StoresPage() {
           <button
             onClick={requestLocation}
             className="flex items-center justify-center"
+            aria-label={location ? '現在地を再取得' : '現在地を取得'}
+            aria-pressed={!!location}
             style={{
               width: 32, height: 32, padding: 0,
               borderRadius: 0,
@@ -208,8 +210,8 @@ export default function StoresPage() {
             title="現在地を取得"
           >
             {locLoading
-              ? <Loader2 style={{ width: 15, height: 15 }} className="animate-spin" />
-              : <LocateFixed style={{ width: 15, height: 15 }} />
+              ? <Loader2 style={{ width: 15, height: 15 }} className="animate-spin" aria-hidden="true" />
+              : <LocateFixed style={{ width: 15, height: 15 }} aria-hidden="true" />
             }
           </button>
 
@@ -226,24 +228,28 @@ export default function StoresPage() {
             <button
               onClick={() => setViewMode('list')}
               className="flex items-center justify-center"
+              aria-label="リスト表示"
+              aria-pressed={viewMode === 'list'}
               style={{
                 width: 30, height: 26, fontSize: 12,
                 color: viewMode === 'list' ? C.inkOnPaper : C.textMute,
                 background: viewMode === 'list' ? C.inkFill : 'transparent',
               }}
             >
-              <List style={{ width: 13, height: 13 }} />
+              <List style={{ width: 13, height: 13 }} aria-hidden="true" />
             </button>
             <button
               onClick={() => setViewMode('split')}
               className="flex items-center justify-center"
+              aria-label="地図とリストを表示"
+              aria-pressed={viewMode === 'split'}
               style={{
                 width: 30, height: 26, fontSize: 12,
                 color: viewMode === 'split' ? C.inkOnPaper : C.textMute,
                 background: viewMode === 'split' ? C.inkFill : 'transparent',
               }}
             >
-              <Map style={{ width: 13, height: 13 }} />
+              <Map style={{ width: 13, height: 13 }} aria-hidden="true" />
             </button>
           </div>
 
@@ -273,13 +279,21 @@ export default function StoresPage() {
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
             style={{ width: 14, height: 14, color: C.textMute }}
+            aria-hidden="true"
           />
+          <label htmlFor="store-search" className="sr-only">
+            店名で検索
+          </label>
           <input
+            id="store-search"
+            name="store-search"
             ref={searchRef}
             type="text"
             value={keyword}
             onChange={e => setKeyword(e.target.value)}
             placeholder="店名で検索..."
+            autoComplete="off"
+            className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#262220]"
             style={{
               width: '100%',
               paddingLeft: 36, paddingRight: keyword ? 32 : 12,
@@ -290,16 +304,16 @@ export default function StoresPage() {
               color: C.textMain,
               fontSize: 14,
               fontWeight: 400,
-              outline: 'none',
             }}
           />
           {keyword && (
             <button
               onClick={() => { setKeyword(''); setDebKeyword(''); searchRef.current?.focus(); }}
+              aria-label="検索語をクリア"
               className="absolute right-3 top-1/2 -translate-y-1/2"
               style={{ color: C.textMute }}
             >
-              <X style={{ width: 14, height: 14 }} />
+              <X style={{ width: 14, height: 14 }} aria-hidden="true" />
             </button>
           )}
         </div>
@@ -437,7 +451,7 @@ export default function StoresPage() {
               stores={sortedStores}
               distances={distances}
               selectedId={selectedId}
-              onSelect={handleSelect}
+              onSelect={viewMode === 'split' ? handleSelect : undefined}
               cardRefs={cardRefs}
             />
           )}

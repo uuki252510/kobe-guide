@@ -92,7 +92,7 @@ export default function BottomNav({ courseCount = 0 }: Props) {
           );
         })}
       </div>
-      <div className="h-safe-bottom" />
+      <div style={{ height: 'env(safe-area-inset-bottom)' }} />
     </nav>
   );
 }

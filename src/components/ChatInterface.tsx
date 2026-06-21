@@ -259,13 +259,18 @@ export default function ChatInterface() {
       >
         <form onSubmit={handleSubmit} className="flex items-end gap-2">
           <div className="flex-1">
+            <label htmlFor="chat-message" className="sr-only">
+              お店探しの条件
+            </label>
             <textarea
+              id="chat-message"
+              name="message"
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={tr.chat.placeholder}
-              className="w-full px-4 py-3 text-[14px] resize-none focus:outline-none transition-colors min-h-[48px] max-h-[120px] leading-relaxed"
+              className="w-full px-4 py-3 text-[14px] resize-none focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#262220] transition-colors min-h-[48px] max-h-[120px] leading-relaxed"
               style={{
                 background: PAPER_LIGHT,
                 border: `1px solid ${INK}`,
@@ -277,14 +282,15 @@ export default function ChatInterface() {
           </div>
           <button
             type="submit"
+            aria-label={isLoading ? '送信中' : 'メッセージを送信'}
             disabled={!input.trim() || isLoading}
             className="flex-shrink-0 w-11 h-11 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-150"
             style={{ background: INK, color: PAPER }}
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
             ) : (
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4" aria-hidden="true" />
             )}
           </button>
         </form>

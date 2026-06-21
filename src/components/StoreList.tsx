@@ -85,7 +85,6 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
         border: `1px solid ${C.border}`,
         borderLeftWidth: selected ? 4 : 1,
       }}
-      onClick={onSelect}
     >
       {/* メイン行 */}
       <div className="flex gap-3 px-4 py-3.5">
@@ -186,6 +185,8 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
         {/* お気に入り */}
         <button
           onClick={e => { e.stopPropagation(); toggle(store.id); }}
+          aria-label={isFav ? `${store.name}をお気に入りから外す` : `${store.name}をお気に入りに追加`}
+          aria-pressed={isFav}
           className="flex items-center justify-center flex-shrink-0 self-start mt-1"
           style={{ width: 28, height: 28 }}
         >
@@ -194,8 +195,9 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
               width: 17, height: 17,
               fill: isFav ? C.pink : 'none',
               color: isFav ? C.pink : C.textMute,
-              transition: 'all 0.15s',
+              transition: 'fill 0.15s, color 0.15s',
             }}
+            aria-hidden="true"
           />
         </button>
       </div>
@@ -224,6 +226,25 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
             <Instagram style={{ width: 12, height: 12 }} />
             Instagram
           </a>
+        )}
+        {onSelect && (
+          <button
+            type="button"
+            onClick={onSelect}
+            aria-pressed={!!selected}
+            className="flex items-center gap-1.5"
+            style={{
+              padding: '5px 11px', fontSize: 12, fontWeight: 600,
+              color: selected ? C.inkOnPaper : C.textSub,
+              background: selected ? C.inkFill : 'transparent',
+              border: `1px solid ${C.border}`,
+              borderRadius: 0,
+              letterSpacing: '0.02em',
+            }}
+          >
+            <MapPin style={{ width: 12, height: 12 }} aria-hidden="true" />
+            地図で表示
+          </button>
         )}
         <div style={{ flex: 1 }} />
         {navUrl && (

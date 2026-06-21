@@ -56,8 +56,9 @@ export default function AuthPage() {
     borderRadius: 0,
     color: C.ink,
     fontSize: 14,
-    outline: 'none',
   };
+  const inputClass =
+    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#262220]';
 
   return (
     <main
@@ -103,7 +104,9 @@ export default function AuthPage() {
             {(['login', 'signup'] as Mode[]).map((m) => (
               <button
                 key={m}
+                type="button"
                 onClick={() => { setMode(m); setError(''); }}
+                aria-pressed={mode === m}
                 className="flex-1 py-2.5 text-sm"
                 style={{
                   borderRadius: 0,
@@ -122,6 +125,7 @@ export default function AuthPage() {
             {mode === 'signup' && (
               <div>
                 <label
+                  htmlFor="auth-username"
                   className="block mb-2"
                   style={{
                     fontSize: 10, color: C.mute, fontWeight: 700,
@@ -131,12 +135,18 @@ export default function AuthPage() {
                   ユーザー名
                 </label>
                 <input
+                  id="auth-username"
+                  name="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value.toLowerCase())}
                   placeholder="kobe_tachinomi"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   required
                   pattern="^[a-z0-9_]{3,30}$"
+                  className={inputClass}
                   style={inputStyle}
                 />
                 <p style={{ fontSize: 10, color: C.mute, marginTop: 4, letterSpacing: '0.04em' }}>
@@ -147,6 +157,7 @@ export default function AuthPage() {
 
             <div>
               <label
+                htmlFor="auth-email"
                 className="block mb-2"
                 style={{
                   fontSize: 10, color: C.mute, fontWeight: 700,
@@ -156,17 +167,25 @@ export default function AuthPage() {
                 メール
               </label>
               <input
+                id="auth-email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
+                autoComplete="email"
+                inputMode="email"
+                autoCapitalize="none"
+                spellCheck={false}
                 required
+                className={inputClass}
                 style={inputStyle}
               />
             </div>
 
             <div>
               <label
+                htmlFor="auth-password"
                 className="block mb-2"
                 style={{
                   fontSize: 10, color: C.mute, fontWeight: 700,
@@ -176,12 +195,16 @@ export default function AuthPage() {
                 パスワード
               </label>
               <input
+                id="auth-password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="8文字以上"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 required
                 minLength={8}
+                className={inputClass}
                 style={inputStyle}
               />
             </div>
@@ -225,6 +248,7 @@ export default function AuthPage() {
           >
             {mode === 'login' ? 'まだの方は' : 'アカウントがある方は'}{' '}
             <button
+              type="button"
               onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); }}
               style={{
                 color: C.ink, fontWeight: 700,
