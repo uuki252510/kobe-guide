@@ -9,6 +9,8 @@ export interface Spot {
   category: string[];
   latitude?: number;
   longitude?: number;
+  photo_reference?: string;
+  tachinomi_type?: string;
   budget_min?: number;
   budget_max?: number;
   vibe_tags: string[];
@@ -20,6 +22,7 @@ export interface Spot {
   reservation_url?: string;
   google_maps_url: string;
   priority_score: number;
+  rating?: number;
   internal_notes?: string;
   caution_notes?: string;
   is_published: boolean;

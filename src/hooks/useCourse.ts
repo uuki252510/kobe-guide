@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Restaurant } from '@/types/restaurant';
 
 const STORAGE_KEY = 'kobe-tachinomi-course';
+const UPDATE_EVENT = 'kobe-tachinomi-course-updated';
 
 export interface CourseStore {
   id: string;
@@ -25,117 +26,129 @@ function toCourseStore(r: Restaurant): CourseStore {
   };
 }
 
+function readStoredCourse(): CourseStore[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeStoredCourse(stores: CourseStore[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stores));
+    window.dispatchEvent(new Event(UPDATE_EVENT));
+  } catch {
+    // Storage is an enhancement; the in-memory state still works.
+  }
+}
+
 export function useCourse() {
   const [course, setCourse] = useState<CourseStore[]>([]);
 
-  // localStorage から読み込み
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setCourse(JSON.parse(raw));
-    } catch {
-      // ignore
-    }
+    const sync = () => setCourse(readStoredCourse());
+    sync();
+    window.addEventListener(UPDATE_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener(UPDATE_EVENT, sync);
+      window.removeEventListener('storage', sync);
+    };
   }, []);
 
-  // localStorage に保存
   const persist = useCallback((stores: CourseStore[]) => {
     setCourse(stores);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stores));
-    } catch {
-      // ignore
-    }
+    writeStoredCourse(stores);
   }, []);
 
   const isInCourse = useCallback(
-    (id: string) => course.some(s => s.id === id),
-    [course]
+    (id: string) => course.some(store => store.id === id),
+    [course],
   );
 
-  const addStore = useCallback(
-    (r: Restaurant) => {
-      setCourse(prev => {
-        if (prev.some(s => s.id === r.id)) return prev;
-        const next = [...prev, toCourseStore(r)];
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
-        return next;
-      });
-    },
-    []
-  );
+  const addCourseStore = useCallback((store: CourseStore) => {
+    setCourse(previous => {
+      if (previous.some(item => item.id === store.id)) return previous;
+      const next = [...previous, store];
+      writeStoredCourse(next);
+      return next;
+    });
+  }, []);
 
-  const removeStore = useCallback(
-    (id: string) => {
-      setCourse(prev => {
-        const next = prev.filter(s => s.id !== id);
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
-        return next;
-      });
-    },
-    []
-  );
+  const addStore = useCallback((restaurant: Restaurant) => {
+    addCourseStore(toCourseStore(restaurant));
+  }, [addCourseStore]);
 
-  const toggleStore = useCallback(
-    (r: Restaurant) => {
-      setCourse(prev => {
-        const exists = prev.some(s => s.id === r.id);
-        const next = exists
-          ? prev.filter(s => s.id !== r.id)
-          : [...prev, toCourseStore(r)];
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
-        return next;
-      });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  const removeStore = useCallback((id: string) => {
+    setCourse(previous => {
+      const next = previous.filter(store => store.id !== id);
+      writeStoredCourse(next);
+      return next;
+    });
+  }, []);
+
+  const toggleStore = useCallback((restaurant: Restaurant) => {
+    setCourse(previous => {
+      const exists = previous.some(store => store.id === restaurant.id);
+      const next = exists
+        ? previous.filter(store => store.id !== restaurant.id)
+        : [...previous, toCourseStore(restaurant)];
+      writeStoredCourse(next);
+      return next;
+    });
+  }, []);
 
   const clearCourse = useCallback(() => {
     persist([]);
   }, [persist]);
 
   const reorderCourse = useCallback((orderedIds: string[]) => {
-    setCourse(prev => {
-      const map = new Map(prev.map(s => [s.id, s]));
-      const next = orderedIds.map(id => map.get(id)).filter(Boolean) as CourseStore[];
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+    setCourse(previous => {
+      const storeMap = new Map(previous.map(store => [store.id, store]));
+      const next = orderedIds
+        .map(id => storeMap.get(id))
+        .filter(Boolean) as CourseStore[];
+      writeStoredCourse(next);
       return next;
     });
   }, []);
 
-  // Google Maps 経路 URL（マルチストップ）
-  // originPos を渡すと現在地をスタート地点にする
   const googleMapsRouteUrl = useCallback((originPos?: { lat: number; lng: number }) => {
-    const withCoords = course.filter(s => s.lat && s.lng);
+    const withCoords = course.filter(store => store.lat && store.lng);
     if (withCoords.length === 0) return null;
 
     if (originPos) {
       const origin = `${originPos.lat},${originPos.lng}`;
-      const destination = `${withCoords[withCoords.length - 1].lat},${withCoords[withCoords.length - 1].lng}`;
-      const waypoints = withCoords.slice(0, -1).map(s => `${s.lat},${s.lng}`).join('|');
+      const lastStore = withCoords[withCoords.length - 1];
+      const destination = `${lastStore.lat},${lastStore.lng}`;
+      const waypoints = withCoords.slice(0, -1).map(store => `${store.lat},${store.lng}`).join('|');
       const params = new URLSearchParams({ api: '1', origin, destination, travelmode: 'walking' });
       if (waypoints) params.set('waypoints', waypoints);
       return `https://www.google.com/maps/dir/?${params}`;
     }
 
     if (withCoords.length === 1) {
-      const s = withCoords[0];
-      return `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
+      const store = withCoords[0];
+      return `https://www.google.com/maps/search/?api=1&query=${store.lat},${store.lng}`;
     }
-    const origin = `${withCoords[0].lat},${withCoords[0].lng}`;
-    const destination = `${withCoords[withCoords.length - 1].lat},${withCoords[withCoords.length - 1].lng}`;
-    const waypoints = withCoords.slice(1, -1).map(s => `${s.lat},${s.lng}`).join('|');
-    const base = 'https://www.google.com/maps/dir/';
+
+    const firstStore = withCoords[0];
+    const lastStore = withCoords[withCoords.length - 1];
+    const origin = `${firstStore.lat},${firstStore.lng}`;
+    const destination = `${lastStore.lat},${lastStore.lng}`;
+    const waypoints = withCoords.slice(1, -1).map(store => `${store.lat},${store.lng}`).join('|');
     const params = new URLSearchParams({ api: '1', origin, destination, travelmode: 'walking' });
     if (waypoints) params.set('waypoints', waypoints);
-    return `${base}?${params}`;
+    return `https://www.google.com/maps/dir/?${params}`;
   }, [course]);
 
   return {
     course,
     isInCourse,
     addStore,
+    addCourseStore,
     removeStore,
     toggleStore,
     clearCourse,

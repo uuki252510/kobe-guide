@@ -1,89 +1,12 @@
-'use client';
+﻿'use client';
 
+import AppShell from '@/components/AppShell';
 import ChatInterface from '@/components/ChatInterface';
-import BottomNav from '@/components/BottomNav';
-import LangSwitcher from '@/components/LangSwitcher';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useCourse } from '@/hooks/useCourse';
-
-const INK    = '#262220';
-const PAPER  = '#F3ECDD';
-const MUTE   = '#857E78';
 
 export default function Home() {
-  const { count: courseCount } = useCourse();
-
   return (
-    <main className="flex flex-col h-dvh pb-14" style={{ background: PAPER }}>
-      {/* ── ヘッダー ── */}
-      <header
-        className="flex-shrink-0 px-4 pt-3 pb-3"
-        style={{
-          background: PAPER,
-          borderBottom: `1px solid ${INK}`,
-        }}
-      >
-        <div className="flex items-center justify-between gap-2">
-          <Link href="/" className="flex items-center gap-2.5 min-w-0">
-            <Image
-              src="/logo.jpg"
-              alt="神戸立ち飲みマップ"
-              width={64}
-              height={36}
-              className="object-contain mix-blend-multiply flex-shrink-0"
-            />
-            <div className="min-w-0">
-              <h1
-                className="font-bold text-[15px] leading-tight truncate"
-                style={{ color: INK }}
-              >
-                神戸立ち飲みマップ
-              </h1>
-              <p
-                className="text-[10px] mt-0.5 truncate tracking-[0.02em]"
-                style={{ color: MUTE }}
-              >
-                三宮・元町 · 90店舗厳選
-              </p>
-            </div>
-          </Link>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <Link
-              href="/featured"
-              className="text-[11px] px-2.5 py-1.5 font-bold tracking-[0.04em]"
-              style={{
-                border: `1px solid ${INK}`,
-                color: INK,
-                background: 'transparent',
-              }}
-            >
-              おすすめ
-            </Link>
-            <LangSwitcher />
-            {courseCount > 0 && (
-              <Link
-                href="/map"
-                className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 font-bold tracking-[0.04em]"
-                style={{
-                  border: `1px solid ${INK}`,
-                  color: INK,
-                  background: 'transparent',
-                }}
-              >
-                🍺 {courseCount}
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* ── チャット(残りの高さを全て埋める) ── */}
-      <div className="flex-1 min-h-0">
-        <ChatInterface />
-      </div>
-
-      <BottomNav courseCount={courseCount} />
-    </main>
+    <AppShell>
+      <ChatInterface />
+    </AppShell>
   );
 }

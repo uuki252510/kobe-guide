@@ -1,29 +1,45 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 const STORAGE_KEY = 'kobe-favorites-v1';
+const UPDATE_EVENT = 'kobe-favorites-updated';
+
+function readIds() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return new Set<string>(raw ? JSON.parse(raw) as string[] : []);
+  } catch {
+    return new Set<string>();
+  }
+}
 
 export function useFavorites() {
-  const [ids, setIds] = useState<Set<string>>(new Set());
+  const [idSet, setIdSet] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setIds(new Set(JSON.parse(raw) as string[]));
-    } catch { /* ignore */ }
+    const sync = () => setIdSet(readIds());
+    sync();
+    window.addEventListener(UPDATE_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener(UPDATE_EVENT, sync);
+      window.removeEventListener('storage', sync);
+    };
   }, []);
 
   const toggle = useCallback((id: string) => {
-    setIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
-      return next;
-    });
-  }, []);
+    const next = new Set(idSet);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setIdSet(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]));
+      window.dispatchEvent(new Event(UPDATE_EVENT));
+    } catch {}
+  }, [idSet]);
 
-  const has = useCallback((id: string) => ids.has(id), [ids]);
+  const has = useCallback((id: string) => idSet.has(id), [idSet]);
+  const ids = useMemo(() => [...idSet], [idSet]);
 
-  return { toggle, has, count: ids.size };
+  return { toggle, has, count: idSet.size, ids };
 }

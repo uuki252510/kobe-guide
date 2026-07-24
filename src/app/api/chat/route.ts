@@ -71,6 +71,10 @@ function restaurantToSpot(r: Restaurant): Spot {
     id:               r.id,
     name:             r.name,
     area:             r.area,
+    latitude:         r.lat ?? undefined,
+    longitude:        r.lng ?? undefined,
+    photo_reference:  r.photo_reference ?? undefined,
+    tachinomi_type:   r.tachinomi_type ?? undefined,
     category:         r.category,
     budget_min:       r.budget_min ?? undefined,
     budget_max:       r.budget_max ?? undefined,
@@ -83,6 +87,7 @@ function restaurantToSpot(r: Restaurant): Spot {
     reservation_url:  r.website ?? undefined,
     google_maps_url:  r.google_maps_url ?? '',
     priority_score:   r.priority_score,
+    rating:           r.rating ?? undefined,
     caution_notes:    cautions.length > 0 ? cautions.join(' ') : undefined,
     highlight:        r.must_try_menu ?? undefined,
     description:      undefined,        // 将来: AI生成の多言語説明文
@@ -194,8 +199,12 @@ export async function POST(req: NextRequest) {
     const { cleanText, spotIds } = parseSpotIds(rawReply);
 
     // 推薦スポット: internal_notes を除去してフロントに返す
-    const recommendedSpots = spots
-      .filter(s => spotIds.includes(s.id))
+    // AI が返した順序をそのまま CHOICE 01 → 03 に使う。
+    // filter() だと DB の priority_score 順へ戻るため、ID 順に引き直す。
+    const recommendedSpots = [...new Set(spotIds)]
+      .slice(0, 3)
+      .map(id => spots.find(spot => spot.id === id))
+      .filter((spot): spot is Spot => Boolean(spot))
       .map(({ internal_notes: _removed, ...rest }) => rest as Spot);
 
     // ─── 会話ログ保存 ─────────────────────────────────────────────────
