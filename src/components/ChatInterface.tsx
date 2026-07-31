@@ -243,8 +243,10 @@ export default function ChatInterface() {
         return response.json();
       })
       .then(data => {
-        const pool = (data.restaurants ?? []).map(restaurantToCandidate).filter((candidate: Candidate) => candidate.id);
-        const next = selectDiverseFeatured(pool);
+        const all = (data.restaurants ?? []).map(restaurantToCandidate).filter((candidate: Candidate) => candidate.id);
+        // 初期3軒は実写真のある店を優先する(フォールバック画像の店が並ぶのを避ける)
+        const withPhoto = all.filter((candidate: Candidate) => candidate.photoReference);
+        const next = selectDiverseFeatured(withPhoto.length >= 3 ? withPhoto : all);
         setFeatured(next);
         setFeaturedStatus('ready');
         if (next.length) setSelectedId(current => (current ? current : next[0].id));
