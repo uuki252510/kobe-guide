@@ -52,7 +52,7 @@ export default function AppShell({ children, title, eyebrow, fullBleed = false, 
               <Link key={href} href={href} className={`rail-nav__item ${active ? 'is-active' : ''}`} aria-current={active ? 'page' : undefined}>
                 <span className="rail-nav__icon">
                   <Icon size={22} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
-                  {href === '/map' && count > 0 ? <span className="nav-badge">{count > 9 ? '9+' : count}</span> : null}
+                  {href === '/map' && count > 0 ? <span className="nav-badge" key={count}>{count > 9 ? '9+' : count}</span> : null}
                 </span>
                 <span>
                   <strong>{label}</strong>

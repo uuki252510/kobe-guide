@@ -32,7 +32,7 @@ export default function BottomNav({ courseCount = 0 }: Props) {
             <Link key={href} href={href} className={`bottom-nav__link ${active ? 'is-active' : ''}`} aria-current={active ? 'page' : undefined}>
               <span className="bottom-nav__icon">
                 <Icon size={23} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
-                {href === '/map' && courseCount > 0 ? <span className="nav-badge">{courseCount > 9 ? '9+' : courseCount}</span> : null}
+                {href === '/map' && courseCount > 0 ? <span className="nav-badge" key={courseCount}>{courseCount > 9 ? '9+' : courseCount}</span> : null}
               </span>
               <span>{label}</span>
             </Link>

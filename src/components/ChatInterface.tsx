@@ -174,6 +174,27 @@ function getRecommendationReasons(candidate: Candidate, query: string, personali
   return reasons.slice(0, 3);
 }
 
+/** 数字を目の前で積み上げる。減速カーブで最後の一桁が落ち着く。 */
+function useCountUp(target: number) {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (!target) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setValue(target); return; }
+    let frame = 0;
+    const started = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - started) / 1100);
+      setValue(Math.round(target * (1 - (1 - progress) ** 3)));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target]);
+
+  return value;
+}
+
 function restaurantToCandidate(restaurant: RestaurantPreview): Candidate {
   return {
     id: restaurant.id,
@@ -228,6 +249,7 @@ export default function ChatInterface() {
   const [featured, setFeatured] = useState<Candidate[]>([]);
   const [featuredStatus, setFeaturedStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [featuredAttempt, setFeaturedAttempt] = useState(0);
+  const [storeTotal, setStoreTotal] = useState(0);
   const [selectedId, setSelectedId] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const uiLang = useUILang();
@@ -248,6 +270,7 @@ export default function ChatInterface() {
         const withPhoto = all.filter((candidate: Candidate) => candidate.photoReference);
         const next = selectDiverseFeatured(withPhoto.length >= 3 ? withPhoto : all);
         setFeatured(next);
+        setStoreTotal(data.pagination?.total ?? all.length);
         setFeaturedStatus('ready');
         if (next.length) setSelectedId(current => (current ? current : next[0].id));
       })
@@ -270,6 +293,9 @@ export default function ChatInterface() {
   }, [candidates, selectedId]);
 
   const selected = candidates.find(candidate => candidate.id === selectedId) ?? candidates[0];
+  const countedStores = useCountUp(storeTotal);
+  // 候補の顔ぶれが変わったら配り直す。key を変えて登場アニメを頭から流す。
+  const dealKey = candidates.map(candidate => candidate.id).join('|');
 
   const messagesRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -337,7 +363,7 @@ export default function ChatInterface() {
         </div>
         <div className="home-intro__visual kg-noren" data-reveal>
           <StoreImage name="神戸の立ち飲み風景" className="home-intro__visual-image" eager width={1536} height={1024} />
-          <div className="home-intro__visual-copy"><strong>三宮・元町、90軒。</strong><span>広告順ではなく、あなたの条件で提案します。</span></div>
+          <div className="home-intro__visual-copy"><strong>三宮・元町、<span className="kg-tally">{countedStores}</span>軒。</strong><span>広告順ではなく、あなたの条件で提案します。</span></div>
         </div>
       </section>
 
@@ -351,7 +377,7 @@ export default function ChatInterface() {
             ) : messages.map(message => (
               <div key={message.id} className={`chat-message ${message.role === 'user' ? 'chat-message--user' : 'chat-message--guide'}`}>
                 <span className="chat-message__icon">{message.role === 'user' ? <User size={17} aria-hidden="true" /> : <ChatCircleDots size={18} weight="fill" aria-hidden="true" />}</span>
-                <div><span className="chat-message__label">{message.role === 'user' ? 'YOU' : 'KOBE GUIDE'}</span>{message.isLoading ? <p className="loading-inline"><SpinnerGap size={17} className="spin" aria-hidden="true" />候補を探しています…</p> : <p>{message.role === 'assistant' ? cleanAssistantText(message.content) : message.content}</p>}</div>
+                <div><span className="chat-message__label">{message.role === 'user' ? 'YOU' : 'KOBE GUIDE'}</span>{message.isLoading ? <p className="loading-inline"><SpinnerGap size={17} className="spin" aria-hidden="true" />三宮・元町から探しています…</p> : <p>{message.role === 'assistant' ? cleanAssistantText(message.content) : message.content}</p>}</div>
               </div>
             ))}
           </div>
@@ -406,9 +432,9 @@ export default function ChatInterface() {
           <div className="recommendation-panel__head" aria-live="polite">
             <div>
               <p className="ui-kicker">STEP 02</p>
-              <h2 id="recommend-title">{candidates.length === 0 ? '今夜の候補' : isPersonalized ? `あなた向け ${candidates.length}軒` : `まず見る ${candidates.length}軒`}</h2>
+              <h2 id="recommend-title">{candidates.length === 0 ? '今夜の候補' : isPersonalized ? `今夜の ${candidates.length}軒` : `まず見る ${candidates.length}軒`}</h2>
               <p className="recommendation-panel__hint">
-                {isPersonalized ? '入力条件との一致点を表示。上からAIの推薦順です。' : '評価とエリア・店タイプを分散した入口です。相談すると入れ替わります。'}
+                {isPersonalized ? '条件に近い順に並べました。合っていた点をカードに出しています。' : '評価とエリア・店タイプを散らした入口です。相談すると、ここが入れ替わります。'}
               </p>
             </div>
             <span className={`recommendation-source ${isPersonalized ? 'is-personalized' : ''}`}>
@@ -430,7 +456,7 @@ export default function ChatInterface() {
             </div>
           ) : (
           <>
-          <div className="recommendation-grid">
+          <div className="recommendation-grid" key={dealKey}>
             {candidates.map((candidate, index) => {
               const active = candidate.id === selected?.id;
               const added = isInCourse(candidate.id);
