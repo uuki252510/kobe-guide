@@ -20,6 +20,8 @@ import {
 import type { Restaurant } from '@/types/restaurant';
 import { useCourse } from '@/hooks/useCourse';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useVisited } from '@/hooks/useVisited';
+import { CLOSING_SOON_MINUTES, getOpenState } from '@/lib/opening-hours';
 import AppShell from '@/components/AppShell';
 import StoreImage from '@/components/StoreImage';
 
@@ -36,6 +38,7 @@ export default function StoreDetail() {
   const router = useRouter();
   const { toggleStore, isInCourse } = useCourse();
   const { toggle: toggleFavorite, has } = useFavorites();
+  const { toggle: toggleVisited, has: hasVisited } = useVisited();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -62,6 +65,8 @@ export default function StoreDetail() {
 
   const inCourse = isInCourse(restaurant.id);
   const favorite = has(restaurant.id);
+  const visited = hasVisited(restaurant.id);
+  const openState = getOpenState(restaurant.opening_hours_json);
   const budget = restaurant.budget_min && restaurant.budget_max ? `¥${restaurant.budget_min.toLocaleString()}–¥${restaurant.budget_max.toLocaleString()}` : restaurant.budget_max ? `〜¥${restaurant.budget_max.toLocaleString()}` : restaurant.budget_min ? `¥${restaurant.budget_min.toLocaleString()}〜` : '予算は要確認';
   const hours = restaurant.opening_hours_json?.weekdayDescriptions ?? [];
 
@@ -84,13 +89,20 @@ export default function StoreDetail() {
           <StoreImage name={restaurant.name} photoReference={restaurant.photo_reference} className="detail-hero__image" eager width={960} height={720} />
           <div className="detail-hero__body">
             <p className="ui-kicker">{AREA_LABEL[restaurant.area] ?? restaurant.area} / KOBE</p>
-            <div className="detail-hero__badges" style={{ marginTop: 12 }}><span className="store-badge">{restaurant.tachinomi_type ? TYPE_LABEL[restaurant.tachinomi_type] ?? '立ち飲み' : '立ち飲み'}</span>{restaurant.is_new_open ? <span className="store-badge store-badge--new">NEW</span> : null}</div>
+            <div className="detail-hero__badges" style={{ marginTop: 12 }}>
+              {openState.open === true ? (openState.closesInMinutes != null && openState.closesInMinutes <= CLOSING_SOON_MINUTES
+                ? <span className="store-badge store-badge--soon">あと{openState.closesInMinutes}分で閉店</span>
+                : <span className="store-badge store-badge--open">営業中</span>) : openState.open === false ? <span className="store-badge store-badge--closed">営業時間外</span> : null}
+              <span className="store-badge">{restaurant.tachinomi_type ? TYPE_LABEL[restaurant.tachinomi_type] ?? '立ち飲み' : '立ち飲み'}</span>
+              {restaurant.is_new_open ? <span className="store-badge store-badge--new">NEW</span> : null}
+            </div>
             <h1>{restaurant.name}</h1>
             <div className="detail-hero__meta"><span><MapPin size={16} aria-hidden="true" />{AREA_LABEL[restaurant.area] ?? restaurant.area}</span>{restaurant.rating ? <span><Star size={16} weight="fill" aria-hidden="true" />{restaurant.rating.toFixed(1)}{restaurant.user_ratings_total ? `（${restaurant.user_ratings_total.toLocaleString()}件）` : ''}</span> : null}</div>
             <div className="detail-budget"><small>一人あたりの目安</small><strong>{budget}</strong></div>
             <div className="detail-actions">
               <button className={`primary-button ${inCourse ? 'is-success' : ''}`} type="button" onClick={() => toggleStore(restaurant)}>{inCourse ? <><Check size={18} aria-hidden="true" />コース追加済み</> : <><Plus size={18} aria-hidden="true" />コースに追加</>}</button>
               <button className={`secondary-button ${favorite ? 'is-active' : ''}`} type="button" onClick={() => toggleFavorite(restaurant.id)}><BookmarkSimple size={18} weight={favorite ? 'fill' : 'regular'} aria-hidden="true" />{favorite ? '保存済み' : '保存する'}</button>
+              <button className={`secondary-button ${visited ? 'is-visited-text' : ''}`} type="button" onClick={() => toggleVisited(restaurant.id)} aria-pressed={visited}><Check size={18} weight="bold" aria-hidden="true" />{visited ? '行った' : '行ったことにする'}</button>
               <button className="icon-button" type="button" onClick={copyUrl} aria-label={copied ? 'URLをコピーしました' : 'URLをコピー'}>{copied ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}</button>
             </div>
           </div>

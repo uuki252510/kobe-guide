@@ -192,6 +192,19 @@ img{display:block;max-width:100%}::selection{background:var(--primary-soft);colo
 .filter-chip--open.is-active{border-color:var(--success);background:var(--success)}
 .filter-row__divider{flex:0 0 auto;align-self:center;width:1px;height:22px;background:var(--line)}
 .kg-open{color:var(--success);font-weight:700}.kg-closed{color:var(--muted)}
+/* 行った記録 — 集めている実感を出す */
+.store-card__marks{position:absolute;top:10px;right:10px;display:flex;gap:6px}
+.store-card__marks .icon-button{border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.92)}
+.icon-button.is-visited{border-color:var(--success);background:var(--success);color:#fff}
+.store-card.is-visited .store-card__media img{filter:saturate(.92)}
+.conquest{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:16px}
+.conquest__figure{display:flex;align-items:baseline;gap:6px;color:var(--success);font-family:var(--font-label);font-weight:700;font-variant-numeric:tabular-nums}
+.conquest__figure strong{font-size:34px;line-height:1}.conquest__figure span{color:var(--muted);font-size:15px}
+.conquest__bar{flex:1 1 180px;max-width:320px;height:8px;overflow:hidden;border-radius:999px;background:var(--surface-soft)}
+.conquest__bar span{display:block;height:100%;border-radius:inherit;background:var(--success);transition:width .8s var(--ease-out-expo)}
+.conquest__note{flex:0 1 auto;color:var(--muted);font-size:13px;text-wrap:pretty}
+.secondary-button.is-visited-text{border-color:var(--success);background:#e7f6f1;color:#04624c}
+@media(max-width:679px){.conquest{flex-wrap:wrap}.conquest__bar{flex-basis:100%;order:3}}
 /* 積み上がる数字はカウンターとして立たせる。桁は揺らさない */
 .kg-tally{display:inline-block;min-width:1.25em;font-family:var(--font-label);font-size:1.4em;font-variant-numeric:tabular-nums;letter-spacing:.01em;text-align:center}
 /* コースに1軒増えたことを、数字自身が知らせる */

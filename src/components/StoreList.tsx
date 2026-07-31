@@ -13,6 +13,7 @@ import {
 } from '@phosphor-icons/react';
 import type { Restaurant } from '@/types/restaurant';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useVisited } from '@/hooks/useVisited';
 import { useCourse } from '@/hooks/useCourse';
 import { formatDistance } from '@/hooks/useLocation';
 import StoreImage from '@/components/StoreImage';
@@ -43,8 +44,10 @@ interface CardProps {
 
 function StoreCard({ store, distance, selected, onSelect }: CardProps) {
   const { toggle, has } = useFavorites();
+  const { toggle: toggleVisited, has: hasVisited } = useVisited();
   const { toggleStore, isInCourse } = useCourse();
   const favorite = has(store.id);
+  const visited = hasVisited(store.id);
   const inCourse = isInCourse(store.id);
   const area = AREA_LABEL[store.area] ?? store.area;
   const type = store.tachinomi_type ? TYPE_LABEL[store.tachinomi_type] ?? '立ち飲み' : '立ち飲み';
@@ -53,13 +56,16 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
   const reason = store.must_try_menu ? `名物「${store.must_try_menu}」を目当てに立ち寄りたい一軒。` : store.vibe_tags?.length ? `${store.vibe_tags.slice(0, 2).map(tag => tag.replace(/-/g, ' ')).join('・')}な雰囲気。` : '気軽に立ち寄れて、神戸らしい夜を楽しめる一軒。';
 
   return (
-    <article className={`store-card ${selected ? 'is-selected' : ''}`}>
+    <article className={`store-card ${selected ? 'is-selected' : ''} ${visited ? 'is-visited' : ''}`}>
       <div className="store-card__media">
         <Link href={`/stores/${store.id}`} aria-label={`${store.name}の詳細を見る`}>
           <StoreImage name={store.name} photoReference={store.photo_reference} />
         </Link>
         <div className="store-card__badges"><OpenBadge store={store} /><span className="store-badge">{type}</span>{store.is_new_open ? <span className="store-badge store-badge--new">NEW</span> : null}</div>
-        <button className={`icon-button store-card__favorite ${favorite ? 'is-active' : ''}`} type="button" onClick={() => toggle(store.id)} aria-label={favorite ? `${store.name}の保存を解除` : `${store.name}を保存`} aria-pressed={favorite}><BookmarkSimple size={20} weight={favorite ? 'fill' : 'regular'} aria-hidden="true" /></button>
+        <div className="store-card__marks">
+          <button className={`icon-button ${visited ? 'is-visited' : ''}`} type="button" onClick={() => toggleVisited(store.id)} title={visited ? '行った店' : '行ったことにする'} aria-label={visited ? `${store.name}を「行った」から外す` : `${store.name}を「行った」に記録`} aria-pressed={visited}><Check size={19} weight="bold" aria-hidden="true" /></button>
+          <button className={`icon-button ${favorite ? 'is-active' : ''}`} type="button" onClick={() => toggle(store.id)} aria-label={favorite ? `${store.name}の保存を解除` : `${store.name}を保存`} aria-pressed={favorite}><BookmarkSimple size={20} weight={favorite ? 'fill' : 'regular'} aria-hidden="true" /></button>
+        </div>
       </div>
 
       <div className="store-card__content">
