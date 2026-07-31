@@ -68,52 +68,39 @@ export function useCourse() {
     [course],
   );
 
+  // 変更系は localStorage を正として読み書きし、setState の updater 内で副作用を起こさない
   const addCourseStore = useCallback((store: CourseStore) => {
-    setCourse(previous => {
-      if (previous.some(item => item.id === store.id)) return previous;
-      const next = [...previous, store];
-      writeStoredCourse(next);
-      return next;
-    });
-  }, []);
+    const current = readStoredCourse();
+    if (current.some(item => item.id === store.id)) return;
+    persist([...current, store]);
+  }, [persist]);
 
   const addStore = useCallback((restaurant: Restaurant) => {
     addCourseStore(toCourseStore(restaurant));
   }, [addCourseStore]);
 
   const removeStore = useCallback((id: string) => {
-    setCourse(previous => {
-      const next = previous.filter(store => store.id !== id);
-      writeStoredCourse(next);
-      return next;
-    });
-  }, []);
+    persist(readStoredCourse().filter(store => store.id !== id));
+  }, [persist]);
 
   const toggleStore = useCallback((restaurant: Restaurant) => {
-    setCourse(previous => {
-      const exists = previous.some(store => store.id === restaurant.id);
-      const next = exists
-        ? previous.filter(store => store.id !== restaurant.id)
-        : [...previous, toCourseStore(restaurant)];
-      writeStoredCourse(next);
-      return next;
-    });
-  }, []);
+    const current = readStoredCourse();
+    const exists = current.some(store => store.id === restaurant.id);
+    persist(exists
+      ? current.filter(store => store.id !== restaurant.id)
+      : [...current, toCourseStore(restaurant)]);
+  }, [persist]);
 
   const clearCourse = useCallback(() => {
     persist([]);
   }, [persist]);
 
   const reorderCourse = useCallback((orderedIds: string[]) => {
-    setCourse(previous => {
-      const storeMap = new Map(previous.map(store => [store.id, store]));
-      const next = orderedIds
-        .map(id => storeMap.get(id))
-        .filter(Boolean) as CourseStore[];
-      writeStoredCourse(next);
-      return next;
-    });
-  }, []);
+    const storeMap = new Map(readStoredCourse().map(store => [store.id, store]));
+    persist(orderedIds
+      .map(id => storeMap.get(id))
+      .filter(Boolean) as CourseStore[]);
+  }, [persist]);
 
   const googleMapsRouteUrl = useCallback((originPos?: { lat: number; lng: number }) => {
     const withCoords = course.filter(store => store.lat && store.lng);

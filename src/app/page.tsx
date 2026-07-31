@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import AppShell from '@/components/AppShell';
 import ChatInterface from '@/components/ChatInterface';

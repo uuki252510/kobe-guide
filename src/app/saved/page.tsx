@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -14,13 +14,21 @@ export default function SavedPage() {
   const { count } = useCourse();
   const [stores, setStores] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
+    setLoadError(false);
     fetch('/api/restaurants?limit=200')
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) throw new Error('failed to load restaurants');
+        return response.json();
+      })
       .then(data => setStores(data.restaurants ?? []))
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
 
   const savedStores = useMemo(() => {
     const order = new Map(ids.map((id, index) => [id, index]));
@@ -39,7 +47,9 @@ export default function SavedPage() {
 
         <div className="saved-section-head"><div><p className="ui-kicker">BOOKMARKS</p><h2>気になる店</h2></div><span className="result-count"><strong>{savedStores.length}</strong> 店</span></div>
 
-        {loading ? <div className="store-loading"><span className="loading-inline"><SpinnerGap size={21} className="spin" aria-hidden="true" />保存した店を読み込んでいます…</span></div> : savedStores.length ? <StoreList stores={savedStores} /> : (
+        {loading ? <div className="store-loading"><span className="loading-inline"><SpinnerGap size={21} className="spin" aria-hidden="true" />保存した店を読み込んでいます…</span></div> : loadError ? (
+          <div className="store-empty"><div><h2>読み込みに失敗しました</h2><p>通信状態を確認して、もう一度お試しください。</p><button className="primary-button" style={{ marginTop: 16 }} type="button" onClick={() => setAttempt(value => value + 1)}>再読み込み</button></div></div>
+        ) : savedStores.length ? <StoreList stores={savedStores} /> : (
           <div className="store-empty"><div><BookmarkSimple size={38} color="var(--muted)" aria-hidden="true" /><h2>保存した店はまだありません</h2><p>店舗カードの保存ボタンを押すと、ここでいつでも比較できます。</p><Link className="primary-button" style={{ marginTop: 16 }} href="/stores">お店を探す<ArrowRight size={17} aria-hidden="true" /></Link></div></div>
         )}
       </div>

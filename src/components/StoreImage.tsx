@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useState } from 'react';
 
@@ -21,6 +21,13 @@ export default function StoreImage({ name, photoReference, className = '', eager
   const fallback = useMemo(() => FALLBACKS[hashName(name) % FALLBACKS.length], [name]);
   const initial = photoReference ? `/api/photo?ref=${encodeURIComponent(photoReference)}` : fallback;
   const [src, setSrc] = useState(initial);
+  const [prevInitial, setPrevInitial] = useState(initial);
+
+  // key なしで別店舗に再利用されても前の画像が残らないよう、props 由来のURLに追従する
+  if (initial !== prevInitial) {
+    setPrevInitial(initial);
+    setSrc(initial);
+  }
 
   return (
     // eslint-disable-next-line @next/next/no-img-element

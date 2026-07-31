@@ -58,7 +58,11 @@ export async function GET(req: NextRequest) {
   if (englishSupport === 'true') query = query.eq('english_support', true);
   if (isNewOpen === 'true')   query = query.eq('is_new_open', true);
   if (soloFriendly === 'true') query = query.gte('solo_friendly_score', 3);
-  if (keyword)                query = query.or(`name.ilike.%${keyword}%,must_try_menu.ilike.%${keyword}%`);
+  if (keyword) {
+    // PostgREST のフィルタ式に連結するため、区切り文字として解釈される文字を除去
+    const safeKeyword = keyword.replace(/[,()"\\]/g, ' ').trim();
+    if (safeKeyword) query = query.or(`name.ilike.%${safeKeyword}%,must_try_menu.ilike.%${safeKeyword}%`);
+  }
   if (vibeTagsParam) {
     const tags = vibeTagsParam.split(',').filter(Boolean);
     if (tags.length > 0) query = query.overlaps('vibe_tags', tags);

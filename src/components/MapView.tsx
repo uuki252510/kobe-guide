@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
+import { CircleMarker, MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import {
   Check,
@@ -18,15 +18,24 @@ import type { CourseStore } from '@/hooks/useCourse';
 import type { Restaurant } from '@/types/restaurant';
 import 'leaflet/dist/leaflet.css';
 
-const defaultIcon = new L.Icon({
-  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
-  iconUrl: '/leaflet/marker-icon.png',
-  shadowUrl: '/leaflet/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+type PinVariant = 'default' | 'course' | 'selected' | 'selected-course';
+
+// 状態ごとの divIcon は不変なのでモジュールレベルでキャッシュし、再レンダー時の再生成を避ける
+const pinCache = new Map<string, L.DivIcon>();
+function pinIcon(variant: PinVariant, label = '') {
+  const key = `${variant}:${label}`;
+  const cached = pinCache.get(key);
+  if (cached) return cached;
+  const size = variant.startsWith('selected') ? 34 : variant === 'course' ? 28 : 22;
+  const icon = L.divIcon({
+    className: 'kg-pin-wrap',
+    html: `<span class="kg-pin kg-pin--${variant}">${label}</span>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+  pinCache.set(key, icon);
+  return icon;
+}
 
 function MapClickHandler({ onClick }: { onClick: () => void }) {
   useMapEvents({ click: onClick });
@@ -66,6 +75,8 @@ export default function MapView() {
   const [stores, setStores] = useState<Restaurant[]>([]);
   const [area, setArea] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCourse, setShowCourse] = useState(false);
   const [currentPos, setCurrentPos] = useState<{ lat: number; lng: number } | null>(null);
@@ -74,13 +85,20 @@ export default function MapView() {
   const { course, count, isInCourse, addStore, removeStore, clearCourse, reorderCourse, googleMapsRouteUrl } = useCourse();
 
   useEffect(() => {
+    setLoading(true);
+    setLoadError(false);
     fetch('/api/restaurants?limit=200')
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) throw new Error('failed to load restaurants');
+        return response.json();
+      })
       .then(data => setStores((data.restaurants ?? []).filter((store: Restaurant) => store.lat && store.lng)))
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
 
   const displayed = useMemo(() => area ? stores.filter(store => store.area === area) : stores, [area, stores]);
+  const courseIndex = useMemo(() => new Map(course.map((store, index) => [store.id, index])), [course]);
   const selected = selectedId ? stores.find(store => store.id === selectedId) ?? null : null;
   const selectedDistance = selected && currentPos && selected.lat && selected.lng ? haversineKm(currentPos.lat, currentPos.lng, selected.lat, selected.lng) : null;
   const routeUrl = googleMapsRouteUrl(currentPos ?? undefined) ?? googleMapsRouteUrl();
@@ -99,6 +117,13 @@ export default function MapView() {
   const optimize = useCallback(() => {
     if (count < 2) return;
     setOptimizing(true);
+    if (!navigator.geolocation) {
+      const origin = { lat: 34.6951, lng: 135.1956 };
+      setCurrentPos(origin);
+      reorderCourse(nearestNeighborRoute(origin.lat, origin.lng, course).map(store => store.id));
+      setOptimized(true); setOptimizing(false);
+      return;
+    }
     navigator.geolocation.getCurrentPosition(position => {
       const origin = { lat: position.coords.latitude, lng: position.coords.longitude };
       setCurrentPos(origin);
@@ -128,14 +153,24 @@ export default function MapView() {
       </header>
 
       <div className="map-canvas">
-        {loading ? <div className="store-loading"><span className="loading-inline"><SpinnerGap size={21} className="spin" aria-hidden="true" />地図を読み込んでいます…</span></div> : (
+        {loading ? <div className="store-loading"><span className="loading-inline"><SpinnerGap size={21} className="spin" aria-hidden="true" />地図を読み込んでいます…</span></div> : loadError ? (
+          <div className="store-empty"><div><h2>店舗情報を読み込めませんでした</h2><p>通信状態を確認して、もう一度お試しください。</p><button className="primary-button" style={{ marginTop: 16 }} type="button" onClick={() => setAttempt(value => value + 1)}>再読み込み</button></div></div>
+        ) : (
           <MapContainer center={[34.6938, 135.1962]} zoom={15} zoomControl={false}>
             <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapClickHandler onClick={() => setSelectedId(null)} />
-            {displayed.map(store => <Marker key={store.id} position={[store.lat!, store.lng!]} icon={defaultIcon} zIndexOffset={selectedId === store.id ? 1000 : isInCourse(store.id) ? 500 : 0} eventHandlers={{ click: () => { setSelectedId(store.id); setShowCourse(false); } }} />)}
+            {displayed.map(store => {
+              const orderIndex = courseIndex.get(store.id);
+              const inCourse = orderIndex != null;
+              const isSelected = selectedId === store.id;
+              const variant: PinVariant = isSelected ? (inCourse ? 'selected-course' : 'selected') : inCourse ? 'course' : 'default';
+              const label = inCourse ? String(orderIndex + 1) : '';
+              return <Marker key={store.id} position={[store.lat!, store.lng!]} icon={pinIcon(variant, label)} zIndexOffset={isSelected ? 1000 : inCourse ? 500 : 0} eventHandlers={{ click: () => { setSelectedId(store.id); setShowCourse(false); } }} />;
+            })}
+            {currentPos ? <CircleMarker center={[currentPos.lat, currentPos.lng]} radius={7} pathOptions={{ color: '#fff', weight: 3, fillColor: '#5265ff', fillOpacity: 1 }} /> : null}
           </MapContainer>
         )}
-        {!loading ? <div className="map-count">{displayed.length} STORES</div> : null}
+        {!loading && !loadError ? <div className="map-count">{displayed.length} STORES</div> : null}
 
         {showCourse ? (
           <section className="course-panel" aria-labelledby="course-title">

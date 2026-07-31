@@ -1,4 +1,6 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { supabaseAdmin } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,11 +30,27 @@ async function refreshPhotoName(reference: string, apiKey: string) {
   return data.photos?.find(photo => photo.name)?.name ?? null;
 }
 
+/** DBに登録済みの photo_reference だけを上流照会の対象にする */
+async function isKnownReference(reference: string) {
+  const { data } = await supabaseAdmin
+    .from('restaurants')
+    .select('id')
+    .eq('photo_reference', reference)
+    .limit(1);
+  return (data?.length ?? 0) > 0;
+}
+
 /** Google Places写真をサーバー経由で配信。失効参照はPlace Detailsから自動更新する。 */
 export async function GET(request: NextRequest) {
   const reference = request.nextUrl.searchParams.get('ref');
   if (!reference) return NextResponse.json({ error: 'ref is required' }, { status: 400 });
-  if (!/^places\/[^/]+\/photos\/[^/]+$/.test(reference)) return NextResponse.json({ error: 'invalid ref' }, { status: 400 });
+  if (!/^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/.test(reference)) return NextResponse.json({ error: 'invalid ref' }, { status: 400 });
+
+  // 一覧ページは1画面で数十枚読むため上限は緩め。ループ課金攻撃だけを止める。
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`photo:${ip}`, 300, 60_000).allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
 
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
@@ -41,9 +59,20 @@ export async function GET(request: NextRequest) {
     let response = await fetchPhoto(reference, apiKey);
 
     if (!response.ok) {
+      // Place Details は課金が重いので、DB登録済みの参照かつ別枠の制限内でのみ叩く
+      if (!(await isKnownReference(reference))) return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
+      if (!checkRateLimit(`photo-refresh:${ip}`, 10, 60_000).allowed) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      }
       const refreshedName = await refreshPhotoName(reference, apiKey);
       if (!refreshedName) return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
       response = await fetchPhoto(refreshedName, apiKey);
+      if (response.ok) {
+        await supabaseAdmin
+          .from('restaurants')
+          .update({ photo_reference: refreshedName })
+          .eq('photo_reference', reference);
+      }
     }
 
     if (!response.ok) return NextResponse.json({ error: 'Photo not found' }, { status: 404 });

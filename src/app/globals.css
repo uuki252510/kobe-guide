@@ -121,4 +121,18 @@ img{display:block;max-width:100%}::selection{background:var(--primary-soft);colo
 .area-shortcut--map .area-shortcut__icon{border-color:#b7dfe3;background:#fff;color:var(--harbor)}.area-shortcut--map .area-shortcut__body>span{color:var(--harbor)}
 .rail-atmosphere__route>.ui-kicker{color:var(--harbor)}.rail-route:before{background:linear-gradient(180deg,var(--primary) 0%,var(--harbor) 52%,var(--wine) 100%)}
 .rail-route__stop:last-child:before{background:var(--surface);box-shadow:0 0 0 2px var(--wine)}.rail-route__stop:last-child span{color:var(--wine)}
-.rail-guide li:nth-child(2) span{color:var(--harbor)}.rail-guide li:nth-child(3) span{color:var(--wine)}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+.rail-guide li:nth-child(2) span{color:var(--harbor)}.rail-guide li:nth-child(3) span{color:var(--wine)}
+/* Map pins: state-aware divIcons (default / course order / selected / current position) */
+.kg-pin-wrap{background:transparent;border:0}
+.kg-pin{display:flex;width:100%;height:100%;align-items:center;justify-content:center;border:3px solid var(--primary);border-radius:999px;background:#fff;color:#fff;box-shadow:0 3px 10px rgba(8,14,28,.28);font-family:var(--font-label);font-size:13px;font-weight:700;line-height:1}
+.kg-pin--course{background:var(--primary)}
+.kg-pin--selected{border-color:#fff;background:var(--primary);box-shadow:0 0 0 2px var(--primary),0 6px 16px rgba(8,14,28,.35)}
+.kg-pin--selected-course{border-color:#fff;background:var(--primary-hover);box-shadow:0 0 0 2px var(--primary-hover),0 6px 16px rgba(8,14,28,.35)}
+/* Chat history: full log with internal scroll pinned to the latest message */
+.chat-messages{max-height:min(46vh,420px);overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+/* Horizontal chip rows on mobile: fade the clipped edge so scrollability is visible */
+@media(max-width:679px){.quick-prompts,.filter-row,.area-tabs,.map-toolbar__areas{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}}
+.store-card__rating small{margin-left:2px;color:var(--muted);font-size:12px;font-weight:600}
+.store-card__detail{flex:0 0 auto;padding:0 12px;font-size:13px}
+@media(min-width:1024px){.recommendation-panel{max-height:calc(100dvh - 48px);overflow-y:auto}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}

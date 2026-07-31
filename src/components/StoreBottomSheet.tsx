@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { ArrowRight, Check, MapPin, Plus, Star, X } from '@phosphor-icons/react';

@@ -28,15 +28,16 @@ export function useFavorites() {
     };
   }, []);
 
+  // localStorage を正として読み書きし、stale なクロージャで更新を失わないようにする
   const toggle = useCallback((id: string) => {
-    const next = new Set(idSet);
+    const next = readIds();
     if (next.has(id)) next.delete(id); else next.add(id);
     setIdSet(next);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]));
       window.dispatchEvent(new Event(UPDATE_EVENT));
     } catch {}
-  }, [idSet]);
+  }, []);
 
   const has = useCallback((id: string) => idSet.has(id), [idSet]);
   const ids = useMemo(() => [...idSet], [idSet]);

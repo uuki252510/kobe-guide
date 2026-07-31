@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -38,16 +38,26 @@ export default function StoreDetail() {
   const { toggle: toggleFavorite, has } = useFavorites();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/restaurants/${id}`)
-      .then(response => response.json())
+    setLoading(true);
+    setLoadError(false);
+    fetch(`/api/restaurants/${encodeURIComponent(id)}`)
+      .then(response => {
+        if (response.status === 404) return { restaurant: null };
+        if (!response.ok) throw new Error('failed to load restaurant');
+        return response.json();
+      })
       .then(data => setRestaurant(data.restaurant ?? null))
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, attempt]);
 
   if (loading) return <AppShell><div className="store-loading"><span>店舗を読み込んでいます…</span></div></AppShell>;
+  if (loadError) return <AppShell><div className="store-empty"><div><h1>読み込みに失敗しました</h1><p>通信状態を確認して、もう一度お試しください。</p><button className="primary-button" style={{ marginTop: 16 }} type="button" onClick={() => setAttempt(value => value + 1)}>再読み込み</button></div></div></AppShell>;
   if (!restaurant) return <AppShell><div className="store-empty"><div><h1>店舗が見つかりません</h1><p>掲載を終了したか、URLが変更された可能性があります。</p><button className="primary-button" style={{ marginTop: 16 }} type="button" onClick={() => router.push('/stores')}>店舗一覧へ</button></div></div></AppShell>;
 
   const inCourse = isInCourse(restaurant.id);
@@ -56,9 +66,13 @@ export default function StoreDetail() {
   const hours = restaurant.opening_hours_json?.weekdayDescriptions ?? [];
 
   const copyUrl = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // 非セキュアコンテキストや権限拒否時は何もしない
+    }
   };
 
   return (

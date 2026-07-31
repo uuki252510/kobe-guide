@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -11,7 +11,6 @@ import {
 
 interface Props {
   courseCount?: number;
-  hideOnDesktop?: boolean;
 }
 
 const tabs = [
@@ -25,7 +24,7 @@ export default function BottomNav({ courseCount = 0 }: Props) {
   const pathname = usePathname();
 
   return (
-    <nav className="bottom-nav" aria-label="メインナビゲーション">
+    <nav className="bottom-nav" aria-label="下部ナビゲーション">
       <div className="bottom-nav__inner">
         {tabs.map(({ href, icon: Icon, label }) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href);

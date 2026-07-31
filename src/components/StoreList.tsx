@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { MutableRefObject } from 'react';
 import Link from 'next/link';
@@ -53,15 +53,15 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
       <div className="store-card__content">
         <div className="store-card__title-row">
           <h2><Link href={`/stores/${store.id}`}>{store.name}</Link></h2>
-          {store.rating ? <span className="store-card__rating"><Star size={15} weight="fill" aria-hidden="true" />{store.rating.toFixed(1)}</span> : null}
+          {store.rating ? <span className="store-card__rating"><Star size={15} weight="fill" aria-hidden="true" />{store.rating.toFixed(1)}{store.user_ratings_total ? <small>({store.user_ratings_total.toLocaleString()})</small> : null}</span> : null}
         </div>
         <div className="store-card__meta"><span><MapPin size={15} aria-hidden="true" />{area}</span><span>{budget}</span>{distance != null ? <span><NavigationArrow size={14} aria-hidden="true" />{formatDistance(distance)}</span> : null}</div>
         <p className="store-card__reason">{reason}</p>
         <div className="store-card__actions">
           <button className={`primary-button ${inCourse ? 'is-success' : ''}`} type="button" onClick={() => toggleStore(store)}>{inCourse ? <><Check size={18} aria-hidden="true" />コース追加済み</> : <><Plus size={18} aria-hidden="true" />コースへ</>}</button>
-          {onSelect ? <button className="icon-button" type="button" onClick={onSelect} aria-label={`${store.name}を地図で表示`}><MapPin size={19} aria-hidden="true" /></button> : null}
-          {navUrl ? <a className="icon-button" href={navUrl} target="_blank" rel="noopener noreferrer" aria-label={`${store.name}への経路を開く`}><NavigationArrow size={19} aria-hidden="true" /></a> : null}
-          <Link className="icon-button" href={`/stores/${store.id}`} aria-label={`${store.name}の詳細を見る`}><ArrowRight size={19} aria-hidden="true" /></Link>
+          {onSelect ? <button className="icon-button" type="button" onClick={onSelect} title="地図で表示" aria-label={`${store.name}を地図で表示`}><MapPin size={19} aria-hidden="true" /></button> : null}
+          {navUrl ? <a className="icon-button" href={navUrl} target="_blank" rel="noopener noreferrer" title="経路を開く" aria-label={`${store.name}への経路を開く`}><NavigationArrow size={19} aria-hidden="true" /></a> : null}
+          <Link className="secondary-button store-card__detail" href={`/stores/${store.id}`}>詳細<ArrowRight size={15} aria-hidden="true" /></Link>
         </div>
       </div>
     </article>

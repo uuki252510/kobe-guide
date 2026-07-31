@@ -70,12 +70,6 @@ const AREA_LABEL: Record<string, string> = {
   sannomiya: '三宮', motomachi: '元町', kitano: '北野', nankinmachi: '南京町', surroundings: '神戸',
 };
 
-const FALLBACK_CANDIDATES: Candidate[] = [
-  { id: 'preview-gonta', name: 'スタンド GONTa', area: 'sannomiya', areaLabel: '三宮', budgetMin: 1500, budgetMax: 2500, lat: 34.6951, lng: 135.1956, googleMapsUrl: '/stores', summary: 'カウンター中心で、ひとりでも入りやすい一軒。', type: 'tachinomi' },
-  { id: 'preview-tachibana', name: '立ち飲み たちばな', area: 'sannomiya', areaLabel: '三宮', budgetMin: 1000, budgetMax: 2000, lat: 34.6928, lng: 135.1937, googleMapsUrl: '/stores', summary: '駅から近く、短い時間でも楽しみやすい立ち飲み。', type: 'tachinomi' },
-  { id: 'preview-hanare', name: '酒場 ハナレ', area: 'motomachi', areaLabel: '元町', budgetMin: 1500, budgetMax: 2500, lat: 34.6904, lng: 135.1888, googleMapsUrl: '/stores', summary: '日本酒の品ぞろえと季節の肴を楽しめる一軒。', type: 'bar' },
-];
-
 const TYPE_LABEL: Record<string, string> = {
   tachinomi: '立ち飲み',
   kakuuchi: '角打ち',
@@ -231,8 +225,10 @@ export default function ChatInterface() {
   const [conversationId, setConversationId] = useState<string>();
   const [language, setLanguage] = useState<Language>('ja');
   const [recommendationQuery, setRecommendationQuery] = useState('');
-  const [featured, setFeatured] = useState<Candidate[]>(FALLBACK_CANDIDATES);
-  const [selectedId, setSelectedId] = useState(FALLBACK_CANDIDATES[0].id);
+  const [featured, setFeatured] = useState<Candidate[]>([]);
+  const [featuredStatus, setFeaturedStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [featuredAttempt, setFeaturedAttempt] = useState(0);
+  const [selectedId, setSelectedId] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const uiLang = useUILang();
   const tr = useT(uiLang);
@@ -240,6 +236,7 @@ export default function ChatInterface() {
 
   useEffect(() => {
     const controller = new AbortController();
+    setFeaturedStatus('loading');
     fetch('/api/restaurants?limit=40', { signal: controller.signal })
       .then(response => {
         if (!response.ok) throw new Error('店舗情報を取得できませんでした');
@@ -248,13 +245,16 @@ export default function ChatInterface() {
       .then(data => {
         const pool = (data.restaurants ?? []).map(restaurantToCandidate).filter((candidate: Candidate) => candidate.id);
         const next = selectDiverseFeatured(pool);
-        if (next.length) { setFeatured(next); setSelectedId(next[0].id); }
+        setFeatured(next);
+        setFeaturedStatus('ready');
+        if (next.length) setSelectedId(current => (current ? current : next[0].id));
       })
       .catch(error => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
+        setFeaturedStatus('error');
       });
     return () => controller.abort();
-  }, []);
+  }, [featuredAttempt]);
 
   const latestAssistantWithSpots = useMemo(() => [...messages].reverse().find(message => message.role === 'assistant' && message.spots?.length), [messages]);
   const isPersonalized = Boolean(latestAssistantWithSpots);
@@ -268,8 +268,16 @@ export default function ChatInterface() {
   }, [candidates, selectedId]);
 
   const selected = candidates.find(candidate => candidate.id === selectedId) ?? candidates[0];
-  const visibleMessages = messages.slice(-4);
-  const mapCandidates: HomeMapCandidate[] = candidates.map(({ id, name, lat, lng }) => ({ id, name, lat, lng }));
+
+  const messagesRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const container = messagesRef.current;
+    if (container) container.scrollTop = container.scrollHeight;
+  }, [messages]);
+  const mapCandidates: HomeMapCandidate[] = useMemo(
+    () => candidates.map(({ id, name, lat, lng }) => ({ id, name, lat, lng })),
+    [candidates],
+  );
 
   const sendMessage = useCallback(async (text: string) => {
     const cleanText = text.trim();
@@ -308,8 +316,6 @@ export default function ChatInterface() {
     addCourseStore(courseStore);
   };
 
-  if (!selected) return null;
-
   return (
     <div className="home-experience">
       <section className="home-intro" aria-labelledby="home-title">
@@ -337,10 +343,10 @@ export default function ChatInterface() {
         <div className="consult-column">
           <section className="chat-panel" aria-labelledby="consult-title">
           <div className="panel-heading"><div><p className="ui-kicker">STEP 01</p><h2 id="consult-title">条件を相談</h2><p>短い言葉で大丈夫です。</p></div></div>
-          <div className="chat-messages" aria-live="polite">
-            {visibleMessages.length === 0 ? (
+          <div className="chat-messages" aria-live="polite" ref={messagesRef}>
+            {messages.length === 0 ? (
               <div className="chat-message chat-message--guide"><span className="chat-message__icon"><ChatCircleDots size={18} weight="fill" aria-hidden="true" /></span><div><span className="chat-message__label">KOBE GUIDE</span><p>たとえば「三宮で、ひとり。日本酒が飲みたい」と入力してください。</p></div></div>
-            ) : visibleMessages.map(message => (
+            ) : messages.map(message => (
               <div key={message.id} className={`chat-message ${message.role === 'user' ? 'chat-message--user' : 'chat-message--guide'}`}>
                 <span className="chat-message__icon">{message.role === 'user' ? <User size={17} aria-hidden="true" /> : <ChatCircleDots size={18} weight="fill" aria-hidden="true" />}</span>
                 <div><span className="chat-message__label">{message.role === 'user' ? 'YOU' : 'KOBE GUIDE'}</span>{message.isLoading ? <p className="loading-inline"><SpinnerGap size={17} className="spin" aria-hidden="true" />候補を探しています…</p> : <p>{message.role === 'assistant' ? cleanAssistantText(message.content) : message.content}</p>}</div>
@@ -398,7 +404,7 @@ export default function ChatInterface() {
           <div className="recommendation-panel__head" aria-live="polite">
             <div>
               <p className="ui-kicker">STEP 02</p>
-              <h2 id="recommend-title">{isPersonalized ? `あなた向け ${candidates.length}軒` : `まず見る ${candidates.length}軒`}</h2>
+              <h2 id="recommend-title">{candidates.length === 0 ? '今夜の候補' : isPersonalized ? `あなた向け ${candidates.length}軒` : `まず見る ${candidates.length}軒`}</h2>
               <p className="recommendation-panel__hint">
                 {isPersonalized ? '入力条件との一致点を表示。上からAIの推薦順です。' : '評価とエリア・店タイプを分散した入口です。相談すると入れ替わります。'}
               </p>
@@ -408,9 +414,23 @@ export default function ChatInterface() {
               {isPersonalized ? 'AIが条件から選定' : '人気データから'}
             </span>
           </div>
+          {candidates.length === 0 ? (
+            <div className="store-empty" style={{ minHeight: 220 }}>
+              {featuredStatus === 'error' ? (
+                <div>
+                  <h3>店舗情報を読み込めませんでした</h3>
+                  <p>通信状態を確認して、もう一度お試しください。</p>
+                  <button className="secondary-button" style={{ marginTop: 14 }} type="button" onClick={() => setFeaturedAttempt(attempt => attempt + 1)}>再読み込み</button>
+                </div>
+              ) : (
+                <div><p className="loading-inline"><SpinnerGap size={20} className="spin" aria-hidden="true" />候補を読み込んでいます…</p></div>
+              )}
+            </div>
+          ) : (
+          <>
           <div className="recommendation-grid">
             {candidates.map((candidate, index) => {
-              const active = candidate.id === selected.id;
+              const active = candidate.id === selected?.id;
               const added = isInCourse(candidate.id);
               const walking = walkingEstimate(candidate.lat, candidate.lng);
               const reasons = getRecommendationReasons(candidate, recommendationQuery, isPersonalized);
@@ -429,12 +449,14 @@ export default function ChatInterface() {
                       {active ? <span className="recommendation-card__summary">{candidate.summary}</span> : null}
                     </span>
                   </button>
-                  {active ? <div className="recommendation-card__actions"><button className={`primary-button ${added ? 'is-success' : ''}`} type="button" onClick={() => chooseCandidate(candidate)} disabled={added}>{added ? <><Check size={18} aria-hidden="true" />コースに追加済み</> : <>この店をコースへ<ArrowRight size={17} aria-hidden="true" /></>}</button><Link href={candidate.id.startsWith('preview-') ? '/stores' : `/stores/${candidate.id}`} className="secondary-button">詳細を見る</Link></div> : null}
+                  <div className="recommendation-card__actions"><button className={`primary-button ${added ? 'is-success' : ''}`} type="button" onClick={() => chooseCandidate(candidate)} disabled={added}>{added ? <><Check size={18} aria-hidden="true" />コースに追加済み</> : <>この店をコースへ<ArrowRight size={17} aria-hidden="true" /></>}</button><Link href={`/stores/${candidate.id}`} className="secondary-button">詳細を見る</Link></div>
                 </article>
               );
             })}
           </div>
-          <div className="recommendation-map" aria-label="候補の位置"><HomeRecommendationMap candidates={mapCandidates} selectedId={selected.id} onSelect={setSelectedId} /></div>
+          <div className="recommendation-map" aria-label="候補の位置"><HomeRecommendationMap candidates={mapCandidates} selectedId={selected?.id} onSelect={setSelectedId} /></div>
+          </>
+          )}
         </section>
       </div>
     </div>
