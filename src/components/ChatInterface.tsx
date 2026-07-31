@@ -15,6 +15,8 @@ import {
 } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Language, Message, Spot } from '@/types';
+import type { OpeningHoursJson } from '@/types/restaurant';
+import { getOpenState } from '@/lib/opening-hours';
 import type { CourseStore } from '@/hooks/useCourse';
 import { useCourse } from '@/hooks/useCourse';
 import { useUILang } from '@/hooks/useUILang';
@@ -44,6 +46,7 @@ interface RestaurantPreview {
   vibe_tags: string[] | null;
   solo_friendly_score: number | null;
   foreigner_friendly_score: number | null;
+  opening_hours_json: OpeningHoursJson | null;
 }
 
 interface Candidate {
@@ -64,6 +67,7 @@ interface Candidate {
   soloFriendly?: boolean;
   foreignerFriendly?: boolean;
   highlight?: string;
+  openNow?: boolean | null;
 }
 
 const AREA_LABEL: Record<string, string> = {
@@ -214,6 +218,7 @@ function restaurantToCandidate(restaurant: RestaurantPreview): Candidate {
     soloFriendly: (restaurant.solo_friendly_score ?? 0) >= 3,
     foreignerFriendly: (restaurant.foreigner_friendly_score ?? 0) >= 3,
     highlight: restaurant.must_try_menu ?? undefined,
+    openNow: getOpenState(restaurant.opening_hours_json).open,
   };
 }
 
@@ -266,9 +271,12 @@ export default function ChatInterface() {
       })
       .then(data => {
         const all = (data.restaurants ?? []).map(restaurantToCandidate).filter((candidate: Candidate) => candidate.id);
-        // 初期3軒は実写真のある店を優先する(フォールバック画像の店が並ぶのを避ける)
+        // 実写真があり、いま開いている店を優先する。足りなければ順に条件を緩める
+        // (営業時間が不明な店は openNow が null なので、閉まっている扱いにはしない)
         const withPhoto = all.filter((candidate: Candidate) => candidate.photoReference);
-        const next = selectDiverseFeatured(withPhoto.length >= 3 ? withPhoto : all);
+        const openWithPhoto = withPhoto.filter((candidate: Candidate) => candidate.openNow !== false);
+        const pool = openWithPhoto.length >= 3 ? openWithPhoto : withPhoto.length >= 3 ? withPhoto : all;
+        const next = selectDiverseFeatured(pool);
         setFeatured(next);
         setStoreTotal(data.pagination?.total ?? all.length);
         setFeaturedStatus('ready');
@@ -472,6 +480,7 @@ export default function ChatInterface() {
                       <span className="recommendation-card__meta">
                         <span title="直線距離から算出した徒歩目安"><MapPin size={14} aria-hidden="true" />{walking.station}から徒歩目安{walking.minutes}分</span>
                         <span>{budgetLabel(candidate)}</span>
+                        {candidate.openNow === true ? <span className="kg-open">営業中</span> : candidate.openNow === false ? <span className="kg-closed">営業時間外</span> : null}
                       </span>
                       {reasons.length > 0 ? <span className="recommendation-card__reasons" aria-label="選定理由">{reasons.map(reason => <span key={reason}>{reason}</span>)}</span> : null}
                       {active ? <span className="recommendation-card__summary">{candidate.summary}</span> : null}

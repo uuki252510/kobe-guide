@@ -16,11 +16,23 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useCourse } from '@/hooks/useCourse';
 import { formatDistance } from '@/hooks/useLocation';
 import StoreImage from '@/components/StoreImage';
+import { CLOSING_SOON_MINUTES, getOpenState } from '@/lib/opening-hours';
 
 const TYPE_LABEL: Record<string, string> = {
   tachinomi: '立ち飲み', kakuuchi: '角打ち', yakitori: '焼鳥', seafood: '海鮮', wine: 'ワイン', italian: 'イタリアン', hormones: 'ホルモン', bar: 'バー',
 };
 const AREA_LABEL: Record<string, string> = { sannomiya: '三宮', motomachi: '元町', surroundings: '周辺', kitano: '北野', nankinmachi: '南京町' };
+
+/** 営業状況は保存済みの openNow ではなく、periods から表示のたびに計算する */
+function OpenBadge({ store }: { store: Restaurant }) {
+  const { open, closesInMinutes } = getOpenState(store.opening_hours_json);
+  if (open === null) return null;
+  if (!open) return <span className="store-badge store-badge--closed">営業時間外</span>;
+  if (closesInMinutes != null && closesInMinutes <= CLOSING_SOON_MINUTES) {
+    return <span className="store-badge store-badge--soon">あと{closesInMinutes}分で閉店</span>;
+  }
+  return <span className="store-badge store-badge--open">営業中</span>;
+}
 
 interface CardProps {
   store: Restaurant;
@@ -46,7 +58,7 @@ function StoreCard({ store, distance, selected, onSelect }: CardProps) {
         <Link href={`/stores/${store.id}`} aria-label={`${store.name}の詳細を見る`}>
           <StoreImage name={store.name} photoReference={store.photo_reference} />
         </Link>
-        <div className="store-card__badges"><span className="store-badge">{type}</span>{store.is_new_open ? <span className="store-badge store-badge--new">NEW</span> : null}</div>
+        <div className="store-card__badges"><OpenBadge store={store} /><span className="store-badge">{type}</span>{store.is_new_open ? <span className="store-badge store-badge--new">NEW</span> : null}</div>
         <button className={`icon-button store-card__favorite ${favorite ? 'is-active' : ''}`} type="button" onClick={() => toggle(store.id)} aria-label={favorite ? `${store.name}の保存を解除` : `${store.name}を保存`} aria-pressed={favorite}><BookmarkSimple size={20} weight={favorite ? 'fill' : 'regular'} aria-hidden="true" /></button>
       </div>
 

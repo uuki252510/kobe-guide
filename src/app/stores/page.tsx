@@ -6,7 +6,9 @@ import AppShell from '@/components/AppShell';
 import StoreList from '@/components/StoreList';
 import { useLocation, haversineKm } from '@/hooks/useLocation';
 import type { Restaurant } from '@/types/restaurant';
+import { getOpenState } from '@/lib/opening-hours';
 import {
+  Clock,
   Crosshair,
   GridFour,
   ListMagnifyingGlass,
@@ -45,6 +47,7 @@ type ViewMode = 'grid' | 'map';
 export default function StoresPage() {
   const [area, setArea] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
+  const [openNowOnly, setOpenNowOnly] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [stores, setStores] = useState<Restaurant[]>([]);
@@ -119,17 +122,19 @@ export default function StoresPage() {
   }, [location, stores]);
 
   const sortedStores = useMemo(() => {
-    if (!location) return stores;
-    return [...stores].sort((a, b) => (distances[a.id] ?? Infinity) - (distances[b.id] ?? Infinity));
-  }, [distances, location, stores]);
+    // 営業時間は時刻依存なのでサーバーに投げられない。取得後にここで絞る
+    const base = openNowOnly ? stores.filter(store => getOpenState(store.opening_hours_json).open) : stores;
+    if (!location) return base;
+    return [...base].sort((a, b) => (distances[a.id] ?? Infinity) - (distances[b.id] ?? Infinity));
+  }, [distances, location, openNowOnly, stores]);
 
   const handleSelect = useCallback((id: string) => {
     setSelectedId(id);
     cardRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, []);
 
-  const resetFilters = () => { setArea(''); setActiveFilter('all'); setKeyword(''); setDebouncedKeyword(''); };
-  const hasFilters = area || activeFilter !== 'all' || debouncedKeyword;
+  const resetFilters = () => { setArea(''); setActiveFilter('all'); setKeyword(''); setDebouncedKeyword(''); setOpenNowOnly(false); };
+  const hasFilters = area || activeFilter !== 'all' || debouncedKeyword || openNowOnly;
 
   return (
     <AppShell title="お店を探す" eyebrow="90 LOCAL STANDING BARS">
@@ -148,11 +153,13 @@ export default function StoresPage() {
           </div>
 
           <div className="filter-row" aria-label="店の特徴">
+            <button type="button" className={`filter-chip filter-chip--open ${openNowOnly ? 'is-active' : ''}`} onClick={() => setOpenNowOnly(value => !value)} aria-pressed={openNowOnly}><Clock size={16} weight={openNowOnly ? 'fill' : 'regular'} aria-hidden="true" />今行ける店</button>
+            <span className="filter-row__divider" aria-hidden="true" />
             {FILTERS.map(item => <button key={item.id} type="button" className={`filter-chip ${activeFilter === item.id ? 'is-active' : ''}`} onClick={() => setActiveFilter(item.id)} aria-pressed={activeFilter === item.id}>{item.label}</button>)}
           </div>
 
           <div className="store-control-row">
-            <p className="result-count" aria-live="polite">{isLoading ? '検索中…' : <><strong>{total}</strong> 店</>}</p>
+            <p className="result-count" aria-live="polite">{isLoading ? '検索中…' : <><strong>{openNowOnly ? sortedStores.length : total}</strong> 店{openNowOnly ? 'が営業中' : ''}</>}</p>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {hasFilters ? <button className="text-button" type="button" onClick={resetFilters}><X size={16} aria-hidden="true" />条件をリセット</button> : null}
               <button className={`icon-button ${location ? 'is-active' : ''}`} type="button" onClick={requestLocation} aria-label="現在地から近い順に並べる" aria-pressed={Boolean(location)} disabled={locationLoading}>{locationLoading ? <SpinnerGap size={19} className="spin" aria-hidden="true" /> : <Crosshair size={19} aria-hidden="true" />}</button>

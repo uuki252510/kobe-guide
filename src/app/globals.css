@@ -184,6 +184,14 @@ img{display:block;max-width:100%}::selection{background:var(--primary-soft);colo
 /* 選ばれた店が地図の上でも一度だけ応える */
 .kg-map-label.is-active{animation:kg-ping .55s var(--ease-gel)}
 @keyframes kg-ping{40%{transform:scale(1.18)}}
+/* いま行けるかどうかを一目で。判定は periods から都度計算している */
+.store-badge--open{background:var(--success)}
+.store-badge--soon{background:var(--danger)}
+.store-badge--closed{background:rgba(52,61,77,.88)}
+.store-card__badges{flex-wrap:wrap;max-width:calc(100% - 62px)}
+.filter-chip--open.is-active{border-color:var(--success);background:var(--success)}
+.filter-row__divider{flex:0 0 auto;align-self:center;width:1px;height:22px;background:var(--line)}
+.kg-open{color:var(--success);font-weight:700}.kg-closed{color:var(--muted)}
 /* 積み上がる数字はカウンターとして立たせる。桁は揺らさない */
 .kg-tally{display:inline-block;min-width:1.25em;font-family:var(--font-label);font-size:1.4em;font-variant-numeric:tabular-nums;letter-spacing:.01em;text-align:center}
 /* コースに1軒増えたことを、数字自身が知らせる */
