@@ -14,6 +14,8 @@ import {
   X,
 } from '@phosphor-icons/react';
 import { useCourse } from '@/hooks/useCourse';
+import { useVisited } from '@/hooks/useVisited';
+import { CourseRouteLayers, CourseRouteOverlay } from '@/components/CourseRoute';
 import StoreBottomSheet from '@/components/StoreBottomSheet';
 import type { CourseStore } from '@/hooks/useCourse';
 import type { Restaurant } from '@/types/restaurant';
@@ -85,6 +87,7 @@ export default function MapView() {
   const [optimized, setOptimized] = useState(false);
   const [shared, setShared] = useState(false);
   const { course, count, isInCourse, addStore, removeStore, clearCourse, reorderCourse, googleMapsRouteUrl } = useCourse();
+  const { has: isVisited, toggle: toggleVisited } = useVisited();
 
   useEffect(() => {
     setLoading(true);
@@ -101,6 +104,13 @@ export default function MapView() {
 
   const displayed = useMemo(() => area ? stores.filter(store => store.area === area) : stores, [area, stores]);
   const courseIndex = useMemo(() => new Map(course.map((store, index) => [store.id, index])), [course]);
+  // コースの並び順のまま、写真つきの完全な店舗データに引き当てる
+  const courseStores = useMemo(() => {
+    const byId = new Map(stores.map(store => [store.id, store]));
+    return course.map(item => byId.get(item.id)).filter(Boolean) as Restaurant[];
+  }, [course, stores]);
+  const routeMode = showCourse && courseStores.length > 0;
+  const activeStop = routeMode ? (courseStores.find(store => store.id === selectedId)?.id ?? courseStores[0].id) : null;
   const selected = selectedId ? stores.find(store => store.id === selectedId) ?? null : null;
   const selectedDistance = selected && currentPos && selected.lat && selected.lng ? haversineKm(currentPos.lat, currentPos.lng, selected.lat, selected.lng) : null;
   const routeUrl = googleMapsRouteUrl(currentPos ?? undefined) ?? googleMapsRouteUrl();
@@ -156,7 +166,7 @@ export default function MapView() {
   }, [count, course, reorderCourse]);
 
   return (
-    <div className="map-page">
+    <div className={`map-page ${routeMode ? 'is-route' : ''}`}>
       <header className="map-toolbar">
         <div className="map-toolbar__top"><div><p className="ui-kicker">STEP 03</p><h1>地図とコース</h1></div></div>
         <div className="map-toolbar__areas" aria-label="エリア">
@@ -172,10 +182,15 @@ export default function MapView() {
         {loading ? <div className="store-loading"><span className="loading-inline"><SpinnerGap size={21} className="spin" aria-hidden="true" />地図を読み込んでいます…</span></div> : loadError ? (
           <div className="store-empty"><div><h2>店舗情報を読み込めませんでした</h2><p>通信状態を確認して、もう一度お試しください。</p><button className="primary-button" style={{ marginTop: 16 }} type="button" onClick={() => setAttempt(value => value + 1)}>再読み込み</button></div></div>
         ) : (
-          <MapContainer center={[34.6938, 135.1962]} zoom={15} zoomControl={false}>
-            <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapContainer center={[34.6938, 135.1962]} zoom={15} zoomControl={false} className={routeMode ? 'is-route' : ''}>
+            {routeMode ? (
+              <TileLayer attribution='&copy; OpenStreetMap contributors &copy; CARTO' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+            ) : (
+              <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            )}
             <MapClickHandler onClick={() => setSelectedId(null)} />
-            {displayed.map(store => {
+            {routeMode ? <CourseRouteLayers stores={courseStores} activeId={activeStop} onSelect={setSelectedId} /> : null}
+            {routeMode ? null : displayed.map(store => {
               const orderIndex = courseIndex.get(store.id);
               const inCourse = orderIndex != null;
               const isSelected = selectedId === store.id;
@@ -186,9 +201,26 @@ export default function MapView() {
             {currentPos ? <CircleMarker center={[currentPos.lat, currentPos.lng]} radius={7} pathOptions={{ color: '#fff', weight: 3, fillColor: '#5265ff', fillOpacity: 1 }} /> : null}
           </MapContainer>
         )}
-        {!loading && !loadError ? <div className="map-count">{displayed.length} STORES</div> : null}
+        {!loading && !loadError && !routeMode ? <div className="map-count">{displayed.length} STORES</div> : null}
 
-        {showCourse ? (
+        {routeMode ? (
+          <>
+            <CourseRouteOverlay
+              stores={courseStores}
+              activeId={activeStop}
+              onSelect={setSelectedId}
+              onClose={() => setShowCourse(false)}
+              isVisited={isVisited}
+              onToggleVisited={toggleVisited}
+            />
+            <div className="route-actions">
+              {count >= 2 ? <button className={`icon-button ${optimized ? 'is-active' : ''}`} type="button" onClick={optimize} disabled={optimizing} aria-label="現在地から近い順に並べ替える">{optimizing ? <SpinnerGap size={19} className="spin" aria-hidden="true" /> : <Crosshair size={19} aria-hidden="true" />}</button> : null}
+              <button className={`icon-button ${shared ? 'is-active' : ''}`} type="button" onClick={shareCourse} aria-label={shared ? 'コースのリンクを共有しました' : 'コースを共有'}>{shared ? <Check size={19} aria-hidden="true" /> : <ShareNetwork size={19} aria-hidden="true" />}</button>
+              <button className="icon-button is-danger" type="button" onClick={() => { clearCourse(); setOptimized(false); }} aria-label="コースをすべて削除"><Trash size={19} aria-hidden="true" /></button>
+              {routeUrl ? <a className="primary-button" href={routeUrl} target="_blank" rel="noopener noreferrer"><NavigationArrow size={18} aria-hidden="true" />歩き始める</a> : null}
+            </div>
+          </>
+        ) : showCourse ? (
           <section className="course-panel" aria-labelledby="course-title">
             <div className="course-panel__head"><div><p className="ui-kicker">YOUR COURSE</p><h2 id="course-title">今夜のはしご {count}店</h2></div><button className="icon-button" type="button" onClick={() => setShowCourse(false)} aria-label="コースを閉じる"><X size={19} aria-hidden="true" /></button></div>
             {count ? <div className="course-list">{course.map((store, index) => <div className="course-item" key={store.id}><span className="course-item__number">{String(index + 1).padStart(2, '0')}</span><div><strong>{store.name}</strong><small>{store.budget_max ? `〜¥${store.budget_max.toLocaleString()}` : '予算は要確認'}</small></div><button className="icon-button is-danger" type="button" onClick={() => removeStore(store.id)} aria-label={`${store.name}をコースから削除`}><X size={17} aria-hidden="true" /></button></div>)}</div> : <div className="store-empty" style={{ minHeight: 180 }}><div><h2>まだ店がありません</h2><p>地図のピンか店舗一覧から追加できます。</p></div></div>}
