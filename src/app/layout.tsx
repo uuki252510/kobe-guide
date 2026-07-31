@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Barlow_Condensed, Zen_Kaku_Gothic_New } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/hooks/useAuth';
+import MotionProvider from '@/components/MotionProvider';
 import { Analytics } from '@vercel/analytics/react';
 
 const zenKaku = Zen_Kaku_Gothic_New({
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <MotionProvider />
         <AuthProvider>{children}</AuthProvider>
         {process.env.VERCEL ? <Analytics /> : null}
       </body>

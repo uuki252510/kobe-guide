@@ -321,11 +321,11 @@ export default function ChatInterface() {
   return (
     <div className="home-experience">
       <section className="home-intro" aria-labelledby="home-title">
-        <div className="home-intro__copy">
+        <div className="home-intro__copy" data-reveal>
           <p className="ui-kicker">KOBE NIGHT GUIDE</p>
-          <h1 id="home-title">今夜、どこで飲む？</h1>
+          <h1 id="home-title"><span className="kg-line"><span>今夜、どこで飲む？</span></span></h1>
           <p className="home-intro__lead">気分・予算・エリアをひと言で。神戸の立ち飲みから3軒に絞り、写真と地図で比べられます。</p>
-          <div className="use-steps" aria-label="使い方3ステップ">
+          <div className="use-steps" aria-label="使い方3ステップ" data-stagger>
             {[
               ['01', '相談する', '気分や予算を書く'],
               ['02', '3軒で比較', '写真と理由を見る'],
@@ -335,7 +335,7 @@ export default function ChatInterface() {
             ))}
           </div>
         </div>
-        <div className="home-intro__visual">
+        <div className="home-intro__visual kg-noren" data-reveal>
           <StoreImage name="神戸の立ち飲み風景" className="home-intro__visual-image" eager width={1536} height={1024} />
           <div className="home-intro__visual-copy"><strong>三宮・元町、90軒。</strong><span>広告順ではなく、あなたの条件で提案します。</span></div>
         </div>
@@ -343,7 +343,7 @@ export default function ChatInterface() {
 
       <div className="chat-layout">
         <div className="consult-column">
-          <section className="chat-panel" aria-labelledby="consult-title">
+          <section className="chat-panel" aria-labelledby="consult-title" data-reveal>
           <div className="panel-heading"><div><p className="ui-kicker">STEP 01</p><h2 id="consult-title">条件を相談</h2><p>短い言葉で大丈夫です。</p></div></div>
           <div className="chat-messages" aria-live="polite" ref={messagesRef}>
             {messages.length === 0 ? (
@@ -374,7 +374,7 @@ export default function ChatInterface() {
           </div>
           </section>
 
-          <section className="area-shortcuts" aria-labelledby="area-shortcuts-title">
+          <section className="area-shortcuts" aria-labelledby="area-shortcuts-title" data-reveal>
             <div className="area-shortcuts__head">
               <div>
                 <p className="ui-kicker">START BY AREA</p>
@@ -382,7 +382,7 @@ export default function ChatInterface() {
               </div>
               <Link href="/stores" className="text-button">全店を見る<ArrowRight size={15} aria-hidden="true" /></Link>
             </div>
-            <div className="area-shortcuts__grid">
+            <div className="area-shortcuts__grid" data-stagger>
               <Link href="/stores?area=sannomiya" className="area-shortcut area-shortcut--sannomiya">
                 <span className="area-shortcut__icon"><MapPin size={20} weight="fill" aria-hidden="true" /></span>
                 <span className="area-shortcut__body"><span>01 / SANNOMIYA</span><strong>三宮</strong><small>駅近の立ち飲みを探す</small></span>
@@ -402,7 +402,7 @@ export default function ChatInterface() {
           </section>
         </div>
 
-        <section className="recommendation-panel" aria-labelledby="recommend-title">
+        <section className="recommendation-panel" aria-labelledby="recommend-title" data-reveal>
           <div className="recommendation-panel__head" aria-live="polite">
             <div>
               <p className="ui-kicker">STEP 02</p>
