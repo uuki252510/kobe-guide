@@ -228,6 +228,19 @@ img{display:block;max-width:100%}::selection{background:var(--primary-soft);colo
 .ranking__image{width:46px;height:46px;object-fit:cover;border-radius:9px;background:#dfe4eb}
 .ranking__list a{min-width:0;overflow:hidden;color:var(--ink);font-size:14px;font-weight:700;text-decoration:none;text-overflow:ellipsis;white-space:nowrap}
 .ranking__list a:hover{color:var(--primary)}
+/* 共有されたコース */
+.shared-course{width:min(760px,100%);margin:0 auto}
+.shared-course__list{display:grid;gap:10px;list-style:none}
+.shared-course__list li{display:grid;grid-template-columns:38px 68px 1fr;align-items:center;gap:12px;border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:12px}
+.shared-course__step{color:var(--primary);font-family:var(--font-label);font-size:17px;font-weight:700;text-align:center}
+.shared-course__image{width:68px;height:68px;object-fit:cover;border-radius:12px;background:#dfe4eb}
+.shared-course__list a{display:block;color:var(--ink);font-size:16px;font-weight:900;letter-spacing:-.03em;text-decoration:none}
+.shared-course__list a:hover{color:var(--primary)}
+.shared-course__list small{display:block;margin-top:3px;color:var(--muted);font-size:13px}
+.shared-course__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.shared-course__actions .primary-button{flex:1 1 240px}
+.shared-course__note{margin-top:16px;color:var(--muted);font-size:13px}
+.shared-course__note a{color:var(--primary);font-weight:700}
 /* 積み上がる数字はカウンターとして立たせる。桁は揺らさない */
 .kg-tally{display:inline-block;min-width:1.25em;font-family:var(--font-label);font-size:1.4em;font-variant-numeric:tabular-nums;letter-spacing:.01em;text-align:center}
 /* コースに1軒増えたことを、数字自身が知らせる */

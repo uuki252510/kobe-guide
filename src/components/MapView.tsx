@@ -8,6 +8,7 @@ import {
   Crosshair,
   MapTrifold,
   NavigationArrow,
+  ShareNetwork,
   SpinnerGap,
   Trash,
   X,
@@ -82,6 +83,7 @@ export default function MapView() {
   const [currentPos, setCurrentPos] = useState<{ lat: number; lng: number } | null>(null);
   const [optimizing, setOptimizing] = useState(false);
   const [optimized, setOptimized] = useState(false);
+  const [shared, setShared] = useState(false);
   const { course, count, isInCourse, addStore, removeStore, clearCourse, reorderCourse, googleMapsRouteUrl } = useCourse();
 
   useEffect(() => {
@@ -113,6 +115,20 @@ export default function MapView() {
   const locate = useCallback(() => {
     navigator.geolocation?.getCurrentPosition(position => setCurrentPos({ lat: position.coords.latitude, lng: position.coords.longitude }), () => setCurrentPos({ lat: 34.6951, lng: 135.1956 }), { timeout: 6000, maximumAge: 60000 });
   }, []);
+
+  const shareCourse = useCallback(async () => {
+    const url = `${window.location.origin}/course?s=${course.map(store => store.id).join(',')}`;
+    const title = `神戸の立ち飲み ${course.length}軒のはしごコース`;
+    try {
+      // 共有シートがあればそちらを優先。無ければURLをコピーする
+      if (navigator.share) await navigator.share({ title, url });
+      else await navigator.clipboard.writeText(url);
+      setShared(true);
+      window.setTimeout(() => setShared(false), 2200);
+    } catch {
+      // 共有シートを閉じただけの場合も来るので、何も知らせない
+    }
+  }, [course]);
 
   const optimize = useCallback(() => {
     if (count < 2) return;
@@ -176,7 +192,7 @@ export default function MapView() {
           <section className="course-panel" aria-labelledby="course-title">
             <div className="course-panel__head"><div><p className="ui-kicker">YOUR COURSE</p><h2 id="course-title">今夜のはしご {count}店</h2></div><button className="icon-button" type="button" onClick={() => setShowCourse(false)} aria-label="コースを閉じる"><X size={19} aria-hidden="true" /></button></div>
             {count ? <div className="course-list">{course.map((store, index) => <div className="course-item" key={store.id}><span className="course-item__number">{String(index + 1).padStart(2, '0')}</span><div><strong>{store.name}</strong><small>{store.budget_max ? `〜¥${store.budget_max.toLocaleString()}` : '予算は要確認'}</small></div><button className="icon-button is-danger" type="button" onClick={() => removeStore(store.id)} aria-label={`${store.name}をコースから削除`}><X size={17} aria-hidden="true" /></button></div>)}</div> : <div className="store-empty" style={{ minHeight: 180 }}><div><h2>まだ店がありません</h2><p>地図のピンか店舗一覧から追加できます。</p></div></div>}
-            {count ? <div className="course-panel__actions">{count >= 2 ? <button className={`secondary-button ${optimized ? 'is-active' : ''}`} type="button" onClick={optimize} disabled={optimizing}>{optimizing ? <><SpinnerGap size={18} className="spin" aria-hidden="true" />並べ替え中…</> : optimized ? <><Check size={18} aria-hidden="true" />近い順に並べました</> : <><Crosshair size={18} aria-hidden="true" />現在地から近い順へ</>}</button> : null}<div className="course-panel__actions-row">{routeUrl ? <a className="primary-button" href={routeUrl} target="_blank" rel="noopener noreferrer"><NavigationArrow size={18} aria-hidden="true" />Googleマップで開始</a> : null}<button className="icon-button is-danger" type="button" onClick={() => { clearCourse(); setOptimized(false); }} aria-label="コースをすべて削除"><Trash size={19} aria-hidden="true" /></button></div></div> : null}
+            {count ? <div className="course-panel__actions">{count >= 2 ? <button className={`secondary-button ${optimized ? 'is-active' : ''}`} type="button" onClick={optimize} disabled={optimizing}>{optimizing ? <><SpinnerGap size={18} className="spin" aria-hidden="true" />並べ替え中…</> : optimized ? <><Check size={18} aria-hidden="true" />近い順に並べました</> : <><Crosshair size={18} aria-hidden="true" />現在地から近い順へ</>}</button> : null}<div className="course-panel__actions-row">{routeUrl ? <a className="primary-button" href={routeUrl} target="_blank" rel="noopener noreferrer"><NavigationArrow size={18} aria-hidden="true" />Googleマップで開始</a> : null}<button className={`icon-button ${shared ? 'is-active' : ''}`} type="button" onClick={shareCourse} aria-label={shared ? 'コースのリンクを共有しました' : 'コースを共有'}>{shared ? <Check size={19} aria-hidden="true" /> : <ShareNetwork size={19} aria-hidden="true" />}</button><button className="icon-button is-danger" type="button" onClick={() => { clearCourse(); setOptimized(false); }} aria-label="コースをすべて削除"><Trash size={19} aria-hidden="true" /></button></div></div> : null}
           </section>
         ) : (
           <StoreBottomSheet restaurant={selected} distanceKm={selectedDistance} inCourse={selected ? isInCourse(selected.id) : false} nearby={[]} onClose={() => setSelectedId(null)} onAddToCourse={() => { if (selected) addStore(selected); }} onRemoveFromCourse={() => { if (selected) removeStore(selected.id); }} onSelectNearby={setSelectedId} />
