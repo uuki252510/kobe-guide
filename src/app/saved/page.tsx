@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, BookmarkSimple, MapTrifold, SpinnerGap } from '@phosphor-icons/react';
 import AppShell from '@/components/AppShell';
 import StoreList from '@/components/StoreList';
+import VisitedRanking from '@/components/VisitedRanking';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useVisited } from '@/hooks/useVisited';
 import { useCourse } from '@/hooks/useCourse';
@@ -51,6 +52,8 @@ export default function SavedPage() {
             <p className="conquest__note">{visitedCount === 0 ? '店舗カードのチェックで、行った店を記録できます。' : `三宮・元町の立ち飲みを ${Math.round((visitedCount / total) * 100)}% 制覇。`}</p>
           </section>
         ) : null}
+
+        {stores.length ? <VisitedRanking stores={stores} /> : null}
 
         {count > 0 ? (
           <section className="course-summary">

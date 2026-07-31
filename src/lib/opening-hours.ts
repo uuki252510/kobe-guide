@@ -60,25 +60,40 @@ export interface OpenState {
   closesInMinutes?: number;
 }
 
-export function getOpenState(hours: OpeningHours | null | undefined, at: Date = new Date()): OpenState {
-  const periods = hours?.periods;
-  if (!periods?.length) return { open: null };
-
-  const now = tokyoWeekMinutes(at);
-  if (now === null) return { open: null };
-
+/** 週内の指定位置が営業区間に入っているか照合する */
+function matchAt(periods: OpeningPeriod[], point: number): OpenState {
   for (const period of periods) {
     const range = periodRange(period);
     if (!range) continue;
     // 週をまたぐ区間も拾えるよう、今週と翌週ぶんの位置で照合する
-    for (const point of [now, now + WEEK_MINUTES]) {
-      if (point >= range.start && point < range.end) {
-        return { open: true, closesInMinutes: range.end - point };
+    for (const candidate of [point, point + WEEK_MINUTES]) {
+      if (candidate >= range.start && candidate < range.end) {
+        return { open: true, closesInMinutes: range.end - candidate };
       }
     }
   }
-
   return { open: false };
+}
+
+export function getOpenState(hours: OpeningHours | null | undefined, at: Date = new Date()): OpenState {
+  const periods = hours?.periods;
+  if (!periods?.length) return { open: null };
+  const now = tokyoWeekMinutes(at);
+  if (now === null) return { open: null };
+  return matchAt(periods, now);
+}
+
+/**
+ * 今日の指定時刻(日本時間)に開いているかどうか。
+ * 「23時以降もやっている店」のような時間帯の絞り込みに使う。
+ */
+export function isOpenAtHour(hours: OpeningHours | null | undefined, hour: number, at: Date = new Date()): boolean | null {
+  const periods = hours?.periods;
+  if (!periods?.length) return null;
+  const now = tokyoWeekMinutes(at);
+  if (now === null) return null;
+  const startOfToday = Math.floor(now / 1440) * 1440;
+  return matchAt(periods, startOfToday + hour * 60).open;
 }
 
 /** 「まもなく閉店」を出す残り時間のしきい値 */

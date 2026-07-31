@@ -190,6 +190,7 @@ img{display:block;max-width:100%}::selection{background:var(--primary-soft);colo
 .store-badge--closed{background:rgba(52,61,77,.88)}
 .store-card__badges{flex-wrap:wrap;max-width:calc(100% - 62px)}
 .filter-chip--open.is-active{border-color:var(--success);background:var(--success)}
+.filter-chip--late.is-active{border-color:var(--wine);background:var(--wine)}
 .filter-row__divider{flex:0 0 auto;align-self:center;width:1px;height:22px;background:var(--line)}
 .kg-open{color:var(--success);font-weight:700}.kg-closed{color:var(--muted)}
 /* 行った記録 — 集めている実感を出す */
@@ -205,6 +206,28 @@ img{display:block;max-width:100%}::selection{background:var(--primary-soft);colo
 .conquest__note{flex:0 1 auto;color:var(--muted);font-size:13px;text-wrap:pretty}
 .secondary-button.is-visited-text{border-color:var(--success);background:#e7f6f1;color:#04624c}
 @media(max-width:679px){.conquest{flex-wrap:wrap}.conquest__bar{flex-basis:100%;order:3}}
+/* マイランキング — 点数ではなく二択の積み重ねで並べる */
+.ranking{margin-bottom:16px;border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:18px}
+.ranking__head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ranking__head h2{margin-top:5px;font-size:20px;font-weight:900;letter-spacing:-.045em}
+.ranking__note{max-width:460px;margin-top:6px;color:var(--muted);font-size:13px;text-wrap:pretty}
+.duel{margin-top:16px;border:1px solid #cfd5ff;border-radius:16px;background:var(--primary-soft);padding:16px;text-align:center}
+.duel__question{font-size:15px;font-weight:900}
+.duel__pair{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin:14px 0 10px}
+.duel__pick{display:grid;gap:8px;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:10px;text-align:center;transition:border-color 180ms ease,transform 180ms var(--ease-out-quart)}
+.duel__pick:hover{border-color:var(--primary);transform:translateY(-2px)}
+.duel__image{width:100%;height:96px;object-fit:cover;border-radius:10px;background:#dfe4eb}
+.duel__pick strong{font-size:14px;font-weight:900;line-height:1.4}
+.duel__pick small{color:var(--muted);font-size:12px}
+.duel__vs{color:var(--primary);font-family:var(--font-label);font-size:15px;font-weight:700}
+.ranking__list{display:grid;gap:8px;margin-top:16px;list-style:none}
+.ranking__list li{display:grid;grid-template-columns:34px 46px 1fr;align-items:center;gap:10px;border-radius:12px;background:var(--surface-soft);padding:8px 10px}
+.ranking__list li.is-first{background:var(--primary-soft)}
+.ranking__rank{display:inline-flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--font-label);font-size:15px;font-weight:700}
+.ranking__list li.is-first .ranking__rank{color:var(--primary)}
+.ranking__image{width:46px;height:46px;object-fit:cover;border-radius:9px;background:#dfe4eb}
+.ranking__list a{min-width:0;overflow:hidden;color:var(--ink);font-size:14px;font-weight:700;text-decoration:none;text-overflow:ellipsis;white-space:nowrap}
+.ranking__list a:hover{color:var(--primary)}
 /* 積み上がる数字はカウンターとして立たせる。桁は揺らさない */
 .kg-tally{display:inline-block;min-width:1.25em;font-family:var(--font-label);font-size:1.4em;font-variant-numeric:tabular-nums;letter-spacing:.01em;text-align:center}
 /* コースに1軒増えたことを、数字自身が知らせる */

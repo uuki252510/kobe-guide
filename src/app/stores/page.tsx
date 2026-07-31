@@ -6,9 +6,10 @@ import AppShell from '@/components/AppShell';
 import StoreList from '@/components/StoreList';
 import { useLocation, haversineKm } from '@/hooks/useLocation';
 import type { Restaurant } from '@/types/restaurant';
-import { getOpenState } from '@/lib/opening-hours';
+import { getOpenState, isOpenAtHour } from '@/lib/opening-hours';
 import {
   Clock,
+  MoonStars,
   Crosshair,
   GridFour,
   ListMagnifyingGlass,
@@ -22,6 +23,9 @@ const StoreMapPanel = dynamic(() => import('@/components/StoreMapPanel'), {
   ssr: false,
   loading: () => <div className="store-loading"><span className="loading-inline"><SpinnerGap size={20} className="spin" aria-hidden="true" />地図を読み込んでいます…</span></div>,
 });
+
+/** 「深夜まで」の基準時刻(日本時間) */
+const LATE_NIGHT_HOUR = 23;
 
 const AREAS = [
   { value: '', label: 'すべて' },
@@ -48,6 +52,7 @@ export default function StoresPage() {
   const [area, setArea] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
   const [openNowOnly, setOpenNowOnly] = useState(false);
+  const [lateNightOnly, setLateNightOnly] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [stores, setStores] = useState<Restaurant[]>([]);
@@ -123,18 +128,21 @@ export default function StoresPage() {
 
   const sortedStores = useMemo(() => {
     // 営業時間は時刻依存なのでサーバーに投げられない。取得後にここで絞る
-    const base = openNowOnly ? stores.filter(store => getOpenState(store.opening_hours_json).open) : stores;
+    let base = stores;
+    if (openNowOnly) base = base.filter(store => getOpenState(store.opening_hours_json).open);
+    if (lateNightOnly) base = base.filter(store => isOpenAtHour(store.opening_hours_json, LATE_NIGHT_HOUR));
     if (!location) return base;
     return [...base].sort((a, b) => (distances[a.id] ?? Infinity) - (distances[b.id] ?? Infinity));
-  }, [distances, location, openNowOnly, stores]);
+  }, [distances, lateNightOnly, location, openNowOnly, stores]);
 
   const handleSelect = useCallback((id: string) => {
     setSelectedId(id);
     cardRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, []);
 
-  const resetFilters = () => { setArea(''); setActiveFilter('all'); setKeyword(''); setDebouncedKeyword(''); setOpenNowOnly(false); };
-  const hasFilters = area || activeFilter !== 'all' || debouncedKeyword || openNowOnly;
+  const resetFilters = () => { setArea(''); setActiveFilter('all'); setKeyword(''); setDebouncedKeyword(''); setOpenNowOnly(false); setLateNightOnly(false); };
+  const hasFilters = area || activeFilter !== 'all' || debouncedKeyword || openNowOnly || lateNightOnly;
+  const timeFiltered = openNowOnly || lateNightOnly;
 
   return (
     <AppShell title="お店を探す" eyebrow="90 LOCAL STANDING BARS">
@@ -154,12 +162,13 @@ export default function StoresPage() {
 
           <div className="filter-row" aria-label="店の特徴">
             <button type="button" className={`filter-chip filter-chip--open ${openNowOnly ? 'is-active' : ''}`} onClick={() => setOpenNowOnly(value => !value)} aria-pressed={openNowOnly}><Clock size={16} weight={openNowOnly ? 'fill' : 'regular'} aria-hidden="true" />今行ける店</button>
+            <button type="button" className={`filter-chip filter-chip--late ${lateNightOnly ? 'is-active' : ''}`} onClick={() => setLateNightOnly(value => !value)} aria-pressed={lateNightOnly}><MoonStars size={16} weight={lateNightOnly ? 'fill' : 'regular'} aria-hidden="true" />{LATE_NIGHT_HOUR}時以降も</button>
             <span className="filter-row__divider" aria-hidden="true" />
             {FILTERS.map(item => <button key={item.id} type="button" className={`filter-chip ${activeFilter === item.id ? 'is-active' : ''}`} onClick={() => setActiveFilter(item.id)} aria-pressed={activeFilter === item.id}>{item.label}</button>)}
           </div>
 
           <div className="store-control-row">
-            <p className="result-count" aria-live="polite">{isLoading ? '検索中…' : <><strong>{openNowOnly ? sortedStores.length : total}</strong> 店{openNowOnly ? 'が営業中' : ''}</>}</p>
+            <p className="result-count" aria-live="polite">{isLoading ? '検索中…' : <><strong>{timeFiltered ? sortedStores.length : total}</strong> 店{openNowOnly && lateNightOnly ? 'が該当' : openNowOnly ? 'が営業中' : lateNightOnly ? `が${LATE_NIGHT_HOUR}時以降も` : ''}</>}</p>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {hasFilters ? <button className="text-button" type="button" onClick={resetFilters}><X size={16} aria-hidden="true" />条件をリセット</button> : null}
               <button className={`icon-button ${location ? 'is-active' : ''}`} type="button" onClick={requestLocation} aria-label="現在地から近い順に並べる" aria-pressed={Boolean(location)} disabled={locationLoading}>{locationLoading ? <SpinnerGap size={19} className="spin" aria-hidden="true" /> : <Crosshair size={19} aria-hidden="true" />}</button>
