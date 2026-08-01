@@ -26,6 +26,8 @@ const AREA_LABEL: Record<string, string> = { sannomiya: '三宮', motomachi: '�
 
 /** 営業状況は保存済みの openNow ではなく、periods から表示のたびに計算する */
 function OpenBadge({ store }: { store: Restaurant }) {
+  // 一時休業中の店は営業時間どおりでも開いていない
+  if (store.business_status === 'CLOSED_TEMPORARILY') return <span className="store-badge store-badge--closed">休業中</span>;
   const { open, closesInMinutes } = getOpenState(store.opening_hours_json);
   if (open === null) return null;
   if (!open) return <span className="store-badge store-badge--closed">営業時間外</span>;

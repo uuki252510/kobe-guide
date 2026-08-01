@@ -47,6 +47,7 @@ interface RestaurantPreview {
   solo_friendly_score: number | null;
   foreigner_friendly_score: number | null;
   opening_hours_json: OpeningHoursJson | null;
+  business_status: string | null;
 }
 
 interface Candidate {
@@ -218,7 +219,7 @@ function restaurantToCandidate(restaurant: RestaurantPreview): Candidate {
     soloFriendly: (restaurant.solo_friendly_score ?? 0) >= 3,
     foreignerFriendly: (restaurant.foreigner_friendly_score ?? 0) >= 3,
     highlight: restaurant.must_try_menu ?? undefined,
-    openNow: getOpenState(restaurant.opening_hours_json).open,
+    openNow: restaurant.business_status === 'CLOSED_TEMPORARILY' ? false : getOpenState(restaurant.opening_hours_json).open,
   };
 }
 

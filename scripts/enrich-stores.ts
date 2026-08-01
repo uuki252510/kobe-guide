@@ -89,6 +89,28 @@ async function findPlace(storeName: string): Promise<PlaceResult | null> {
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
+/**
+ * Places のテキスト検索は「近くの何か」を必ず返すので、名前を突き合わせないと
+ * 掲載していない店に赤の他人の店が紐づく。表記ゆれは許し、別物だけ弾く。
+ */
+function normalizeName(value: string) {
+  return value
+    .normalize('NFKC')
+    .replace(/[\s　・（）()「」『』【】,、。]/g, '')
+    .toLowerCase()
+    .replace(/立ち飲み|立呑み|立ち呑み|立飲み|立呑|角打ち|酒場|居酒屋|店$/g, '');
+}
+
+export function isSameStore(ours: string, theirs: string) {
+  const a = normalizeName(ours);
+  const b = normalizeName(theirs);
+  if (!a || !b) return false;
+  if (a.includes(b) || b.includes(a)) return true;
+  const chars = new Set([...a]);
+  const shared = [...b].filter(char => chars.has(char)).length;
+  return shared / Math.max(a.length, b.length) >= 0.5;
+}
+
 async function run() {
   const args = process.argv.slice(2);
   const dryRun  = args.includes('--dry-run');
@@ -142,6 +164,15 @@ async function run() {
     if (!place) {
       console.log('⚠️  見つからず（スキップ）');
       miss++;
+      await sleep(300);
+      continue;
+    }
+
+    // 別の店を拾っていたら書き込まず、人が見るべき印だけ付ける
+    if (!isSameStore(store.name, place.displayName?.text ?? '')) {
+      console.log(`⚠️  別の店の可能性（Google:「${place.displayName?.text ?? '不明'}」）→ 要確認としてスキップ`);
+      miss++;
+      if (!dryRun) await supabase.from('restaurants').update({ review_needed: true }).eq('id', store.id);
       await sleep(300);
       continue;
     }

@@ -129,7 +129,7 @@ export default function StoresPage() {
   const sortedStores = useMemo(() => {
     // 営業時間は時刻依存なのでサーバーに投げられない。取得後にここで絞る
     let base = stores;
-    if (openNowOnly) base = base.filter(store => getOpenState(store.opening_hours_json).open);
+    if (openNowOnly) base = base.filter(store => store.business_status !== 'CLOSED_TEMPORARILY' && getOpenState(store.opening_hours_json).open);
     if (lateNightOnly) base = base.filter(store => isOpenAtHour(store.opening_hours_json, LATE_NIGHT_HOUR));
     if (!location) return base;
     return [...base].sort((a, b) => (distances[a.id] ?? Infinity) - (distances[b.id] ?? Infinity));
