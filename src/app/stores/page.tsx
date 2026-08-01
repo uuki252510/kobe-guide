@@ -145,7 +145,7 @@ export default function StoresPage() {
   const timeFiltered = openNowOnly || lateNightOnly;
 
   return (
-    <AppShell title="お店を探す" eyebrow="90 LOCAL STANDING BARS">
+    <AppShell title="お店を探す" eyebrow={total ? `${total} LOCAL STANDING BARS` : 'LOCAL STANDING BARS'}>
       <div className="store-page">
         <section className="store-controls" aria-label="店舗の検索条件">
           <div className="store-controls__row">
